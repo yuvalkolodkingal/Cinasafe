@@ -89,6 +89,9 @@ pub struct PlannedEpisode {
 #[derive(Clone, Debug, Serialize)]
 pub struct PlannedShow {
     pub title: String,
+    /// Other names the files or folders used (e.g. the Hebrew title in file
+    /// names under an English folder). Lookups try these too.
+    pub alt_titles: Vec<String>,
     pub year: Option<u16>,
     pub episodes: Vec<PlannedEpisode>,
 }
@@ -294,9 +297,15 @@ pub fn scan(root: &Path) -> io::Result<ImportPlan> {
         }
     }
 
-    // Group episodes into shows by normalised title; keep the first spelling seen.
-    // normalised title -> (display title, years seen, episodes)
-    type ShowGroup = (String, Vec<Option<u16>>, Vec<PlannedEpisode>);
+    // Group episodes into shows: by show folder when files sit in
+    // `<Show>/<Season N>/`, otherwise by normalised title. The folder name
+    // (or the first spelling seen) is the display title.
+    #[derive(Default)]
+    struct ShowGroup {
+        titles: Vec<String>,
+        years: Vec<Option<u16>>,
+        episodes: Vec<PlannedEpisode>,
+    }
     let mut shows: BTreeMap<String, ShowGroup> = BTreeMap::new();
     for (v, mut s) in videos.into_iter().zip(attached) {
         s.sort_by(|a, b| a.path.cmp(&b.path));
@@ -305,14 +314,38 @@ pub fn scan(root: &Path) -> io::Result<ImportPlan> {
                 plan.movies.push(PlannedMovie { title, year, video: v.file, subtitles: s })
             }
             MediaGuess::Episode { show, year, season, episodes, air_date, episode_title } => {
-                let entry =
-                    shows.entry(normalize_title(&show)).or_insert_with(|| (show.clone(), Vec::new(), Vec::new()));
-                entry.1.push(year);
-                entry.2.push(PlannedEpisode { season, episodes, air_date, episode_title, video: v.file, subtitles: s });
+                let folder = parse::show_folder(&v.file.path);
+                let key = normalize_title(folder.as_ref().map_or(&show, |(f, _)| f));
+                let group = shows.entry(key).or_default();
+                if let Some((f, fy)) = folder {
+                    group.titles.insert(0, f);
+                    group.years.push(fy);
+                }
+                group.titles.push(show);
+                group.years.push(year);
+                group.episodes.push(PlannedEpisode {
+                    season,
+                    episodes,
+                    air_date,
+                    episode_title,
+                    video: v.file,
+                    subtitles: s,
+                });
             }
         }
     }
-    for (_, (title, years, mut episodes)) in shows {
+    for (_, g) in shows {
+        let ShowGroup { titles, years, mut episodes } = g;
+        let mut seen = Vec::new();
+        let mut distinct = Vec::new();
+        for t in titles.into_iter().filter(|t| !t.is_empty()) {
+            let n = normalize_title(&t);
+            if !seen.contains(&n) {
+                seen.push(n);
+                distinct.push(t);
+            }
+        }
+        let title = if distinct.is_empty() { String::new() } else { distinct.remove(0) };
         episodes.sort_by(|a, b| {
             (a.season, a.episodes.first(), &a.air_date, &a.video.path).cmp(&(
                 b.season,
@@ -321,7 +354,7 @@ pub fn scan(root: &Path) -> io::Result<ImportPlan> {
                 &b.video.path,
             ))
         });
-        plan.shows.push(PlannedShow { title, year: most_common(&years), episodes });
+        plan.shows.push(PlannedShow { title, alt_titles: distinct, year: most_common(&years), episodes });
     }
     plan.movies.sort_by_key(|m| (normalize_title(&m.title), m.year));
     Ok(plan)
@@ -399,6 +432,7 @@ mod tests {
         t.file("Fauda/Season 1/Fauda.S01E03.he.srt", HE.as_bytes()); // no such video
         t.file("Fauda/Season 1/Subs/Fauda.S01E02.1080p/3_English.srt", EN.as_bytes());
         t.file("פאודה/עונה 2/פרק 1.mkv", b"v");
+        t.file("Fauda/Season 2/פאודה עונה 2 פרק 5.mkv", b"v");
         t.file(".cinasafe/blobs/aa/bb/x.cblob", b"x");
 
         let plan = scan(&t.0).unwrap();
@@ -417,7 +451,8 @@ mod tests {
         assert_eq!(bashir.source_encoding, "windows-1255");
 
         let shows: Vec<_> = plan.shows.iter().map(|s| (s.title.as_str(), s.episodes.len())).collect();
-        assert_eq!(shows, [("Fauda", 2), ("פאודה", 1)]);
+        assert_eq!(shows, [("Fauda", 3), ("פאודה", 1)]);
+        assert_eq!(plan.shows[0].alt_titles, ["פאודה"]);
         assert_eq!(
             subs_of(&plan, "Fauda/Season 1/Fauda.S01E01.1080p.mkv"),
             [("Fauda/Season 1/Fauda.S01E01.heb.srt", Some("he"))]

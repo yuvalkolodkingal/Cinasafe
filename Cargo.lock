@@ -474,6 +474,8 @@ dependencies = [
  "cinasafe-core",
  "cinasafe-player",
  "clap",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

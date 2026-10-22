@@ -1,5 +1,8 @@
-//! `cinasafe` CLI. In Milestone 0 it only drives the playback spike against a
-//! plaintext-key test vault; real vault commands come with the vault milestone.
+//! `cinasafe` CLI. `scan` and `identify` preview what an import would
+//! recognise; the `spike-*` commands drive the Milestone 0 playback spike
+//! against a plaintext-key test vault. Real vault commands come later.
+
+mod library;
 
 use std::io::{self, Read, Seek, SeekFrom};
 use std::path::PathBuf;
@@ -13,7 +16,7 @@ use cinasafe_player::{Event, MediaStream, Mpv, StreamOpener};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "cinasafe", version, about = "Cinasafe command-line tool (Milestone 0 spike)")]
+#[command(name = "cinasafe", version, about = "Cinasafe command-line tool")]
 struct Cli {
     #[command(subcommand)]
     cmd: Cmd,
@@ -22,6 +25,30 @@ struct Cli {
 #[derive(Subcommand)]
 #[allow(clippy::enum_variant_names)]
 enum Cmd {
+    /// Show what importing a folder would recognise: movies, shows, episodes and subtitles. Offline.
+    Scan {
+        dir: PathBuf,
+        /// Machine-readable output.
+        #[arg(long)]
+        json: bool,
+    },
+    /// Like scan, then look titles up online and show the metadata (and artwork) that would be attached.
+    Identify {
+        dir: PathBuf,
+        #[arg(long, value_enum, default_value_t = library::ProviderChoice::Auto)]
+        provider: library::ProviderChoice,
+        /// TMDB v3 API key or v4 read access token. Prefer the environment variable.
+        #[arg(long, env = "CINASAFE_TMDB_KEY", hide_env_values = true)]
+        tmdb_key: Option<String>,
+        /// Metadata language (TMDB), e.g. he-IL, ar-SA, en-US.
+        #[arg(long, default_value = "en-US")]
+        language: String,
+        /// Also download posters, backdrops and episode stills (into memory) to check they exist.
+        #[arg(long)]
+        artwork: bool,
+        #[arg(long)]
+        json: bool,
+    },
     /// Create a spike test vault with a PLAINTEXT key file under <root>/.cinasafe.
     SpikeInit { root: PathBuf },
     /// Encrypt a file into the spike vault and print its blob id.
@@ -149,6 +176,10 @@ fn summary(mut v: Vec<Duration>) -> String {
 
 fn run(cli: Cli) -> Result<(), String> {
     match cli.cmd {
+        Cmd::Scan { dir, json } => library::scan(&dir, json)?,
+        Cmd::Identify { dir, provider, tmdb_key, language, artwork, json } => {
+            library::identify(library::IdentifyArgs { dir: &dir, provider, tmdb_key, language, artwork, json })?
+        }
         Cmd::SpikeInit { root } => {
             SpikeVault::init(&root).map_err(|e| e.to_string())?;
             println!("spike vault created at {}", root.join(".cinasafe").display());

@@ -110,6 +110,15 @@ fn season_dir(name: &str) -> Option<u32> {
     SEASON_DIR.captures(name.trim()).and_then(|c| c["s"].parse().ok())
 }
 
+/// The show folder of a file kept as `<Show>/<Season N>/<file>`, if it is.
+/// Folder names are what the user organised by, so they group episodes and
+/// serve as an alternative title for lookups.
+pub fn show_folder(rel: &Path) -> Option<(String, Option<u16>)> {
+    let dirs = dirs_of(rel);
+    season_dir(dirs.last()?)?;
+    show_from_dirs(&dirs).filter(|(t, _)| !t.is_empty())
+}
+
 /// Nearest folder above the file that names the show (skipping season folders).
 fn show_from_dirs(dirs: &[String]) -> Option<(String, Option<u16>)> {
     dirs.iter().rev().find(|d| season_dir(d).is_none()).map(|d| split_paren_year(d))
@@ -315,6 +324,13 @@ mod tests {
             }
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn show_folders() {
+        assert_eq!(show_folder(Path::new("Shtisel (2013)/עונה 2/x.mkv")), Some(("Shtisel".into(), Some(2013))));
+        assert_eq!(show_folder(Path::new("Downloads/Fauda.S01E01.mkv")), None);
+        assert_eq!(show_folder(Path::new("Season 1/x.mkv")), None);
     }
 
     #[test]

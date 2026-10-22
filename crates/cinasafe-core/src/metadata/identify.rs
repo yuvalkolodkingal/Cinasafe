@@ -65,22 +65,34 @@ pub fn identify_movie(p: &dyn MetadataProvider, title: &str, year: Option<u16>) 
     Ok(IdentifiedMovie { confident, confidence, details, candidates: ranked.into_iter().map(Scored::from).collect() })
 }
 
-/// `seasons`: the season numbers present on disk; empty fetches every season
-/// (needed for absolute-numbered or dated episodes).
+/// `titles`: the parsed title first, then alternatives (e.g. the folder
+/// name). Each is tried until one gives a confident match; the best result
+/// overall is kept. `seasons`: the season numbers present on disk; empty
+/// fetches every season (needed for absolute-numbered or dated episodes).
 pub fn identify_show(
     p: &dyn MetadataProvider,
-    title: &str,
+    titles: &[&str],
     year: Option<u16>,
     seasons: &[u32],
 ) -> Result<IdentifiedShow> {
-    let ranked = search(title, year, |t, y| p.search_show(t, y))?;
-    let confident = matching::is_confident(&ranked);
-    let confidence = ranked.first().map_or(0.0, |r| r.confidence);
-    let details = match ranked.first() {
-        Some(best) => Some(p.show(&best.candidate.id, seasons)?),
+    let mut best: Vec<Ranked> = Vec::new();
+    for title in titles.iter().filter(|t| !t.trim().is_empty()) {
+        let ranked = search(title, year, |t, y| p.search_show(t, y))?;
+        let top = |r: &[Ranked]| r.first().map_or(-1.0, |r| r.confidence);
+        if top(&ranked) > top(&best) {
+            best = ranked;
+        }
+        if matching::is_confident(&best) {
+            break;
+        }
+    }
+    let confident = matching::is_confident(&best);
+    let confidence = best.first().map_or(0.0, |r| r.confidence);
+    let details = match best.first() {
+        Some(top) => Some(p.show(&top.candidate.id, seasons)?),
         None => None,
     };
-    Ok(IdentifiedShow { confident, confidence, details, candidates: ranked.into_iter().map(Scored::from).collect() })
+    Ok(IdentifiedShow { confident, confidence, details, candidates: best.into_iter().map(Scored::from).collect() })
 }
 
 /// Episode metadata for a file, by season/episode, absolute number or air date.
@@ -190,6 +202,21 @@ mod tests {
     }
 
     #[test]
+    fn falls_back_to_alternative_title() {
+        let http = Arc::new(
+            FakeHttp::new()
+                .status("/search/shows?q=%D7%A4", 200, b"[]")
+                .route("/search/shows?q=Fauda", "tvmaze/search-fauda.json")
+                .route("/shows/15315?", "tvmaze/show-15315.json")
+                .route("/shows/15315/images", "tvmaze/images-15315.json"),
+        );
+        let m = TvMaze::new(http.clone());
+        let r = identify_show(&m, &["פאודה", "Fauda"], None, &[1]).unwrap();
+        assert!(r.confident);
+        assert_eq!(http.urls().iter().filter(|u| u.contains("/search/")).count(), 2);
+    }
+
+    #[test]
     fn identifies_show_and_maps_episodes() {
         let m = TvMaze::new(Arc::new(
             FakeHttp::new()
@@ -197,7 +224,7 @@ mod tests {
                 .route("/shows/15315?", "tvmaze/show-15315.json")
                 .route("/shows/15315/images", "tvmaze/images-15315.json"),
         ));
-        let r = identify_show(&m, "Fauda", None, &[]).unwrap();
+        let r = identify_show(&m, &["Fauda"], None, &[]).unwrap();
         assert!(r.confident);
         let show = r.details.unwrap();
         assert_eq!(episodes_for(&show, Some(1), &[2], None)[0].number, 2);
