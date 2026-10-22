@@ -1,8 +1,12 @@
 [package]
 name = "cinasafe-player"
+description = "libmpv wrapper and cinasafe:// stream bridge"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 repository.workspace = true
 
 [dependencies]
+cinasafe-core = { path = "../cinasafe-core" }
+libloading = "0.8.9"
+thiserror = "2.0.21"
