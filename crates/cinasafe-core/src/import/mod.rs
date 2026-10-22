@@ -398,7 +398,12 @@ mod tests {
     const HE: &str = "1\n00:00:01,000 --> 00:00:02,000\nשלום, זו כתובית בעברית לבדיקה ארוכה מספיק\n";
     const EN: &str = "1\n00:00:01,000 --> 00:00:02,000\nHello, this is an English subtitle\n";
 
-    fn subs_of<'a>(plan: &'a ImportPlan, video: &str) -> Vec<(&'a str, Option<&'static str>)> {
+    /// Paths as `/`-separated strings, so assertions hold on Windows too.
+    fn slash(p: &Path) -> String {
+        p.to_string_lossy().replace('\\', "/")
+    }
+
+    fn subs_of(plan: &ImportPlan, video: &str) -> Vec<(String, Option<&'static str>)> {
         let all = plan
             .movies
             .iter()
@@ -406,7 +411,7 @@ mod tests {
             .chain(plan.shows.iter().flat_map(|s| s.episodes.iter().map(|e| (&e.video, &e.subtitles))));
         for (v, s) in all {
             if v.path == Path::new(video) {
-                return s.iter().map(|s| (s.path.to_str().unwrap(), s.language)).collect();
+                return s.iter().map(|s| (slash(&s.path), s.language)).collect();
             }
         }
         panic!("video {video} not in plan");
@@ -442,8 +447,8 @@ mod tests {
         assert_eq!(
             subs_of(&plan, "Inception (2010)/Inception.2010.1080p.BluRay.mkv"),
             [
-                ("Inception (2010)/Inception.2010.1080p.BluRay.he.srt", Some("he")),
-                ("Inception (2010)/Subs/2_English.srt", Some("en")),
+                ("Inception (2010)/Inception.2010.1080p.BluRay.he.srt".to_owned(), Some("he")),
+                ("Inception (2010)/Subs/2_English.srt".to_owned(), Some("en")),
             ]
         );
         let bashir = &plan.movies[1].subtitles[0];
@@ -455,22 +460,22 @@ mod tests {
         assert_eq!(plan.shows[0].alt_titles, ["פאודה"]);
         assert_eq!(
             subs_of(&plan, "Fauda/Season 1/Fauda.S01E01.1080p.mkv"),
-            [("Fauda/Season 1/Fauda.S01E01.heb.srt", Some("he"))]
+            [("Fauda/Season 1/Fauda.S01E01.heb.srt".to_owned(), Some("he"))]
         );
         let e2 = subs_of(&plan, "Fauda/Season 1/Fauda.S01E02.1080p.mkv");
         assert_eq!(e2.len(), 2);
         assert!(plan.shows[0].episodes[1].subtitles.iter().any(|s| s.forced));
         assert_eq!(plan.shows[1].episodes[0].season, Some(2));
 
-        let unmatched: Vec<_> = plan.unmatched_subtitles.iter().map(|s| s.path.to_str().unwrap()).collect();
+        let unmatched: Vec<_> = plan.unmatched_subtitles.iter().map(|s| slash(&s.path)).collect();
         assert_eq!(unmatched, ["Fauda/Season 1/Fauda.S01E03.he.srt"]);
-        let mut skipped: Vec<_> = plan.skipped.iter().map(|s| (s.path.to_str().unwrap(), s.reason)).collect();
+        let mut skipped: Vec<_> = plan.skipped.iter().map(|s| (slash(&s.path), s.reason)).collect();
         skipped.sort();
         assert_eq!(
             skipped,
             [
-                ("Inception (2010)/Extras/Making Of.mkv", SkipReason::Extra),
-                ("Inception (2010)/Sample/inception-sample.mkv", SkipReason::Extra),
+                ("Inception (2010)/Extras/Making Of.mkv".to_owned(), SkipReason::Extra),
+                ("Inception (2010)/Sample/inception-sample.mkv".to_owned(), SkipReason::Extra),
             ]
         );
     }
