@@ -7,6 +7,18 @@ libmpv 0.37 (client API 2.2), WebKitGTK 2.52, Tauri 2.12, Xvfb and headless West
 Reproduce: `spike/run-spike.sh` (headless) and `spike/run-spike.sh --window` (needs a display).
 Test media is synthetic (ffmpeg `testsrc2`). Subtitles are a hand-written Hebrew/Arabic/English SRT.
 
+## Against the M0 acceptance criteria (brief section 14)
+
+| Criterion | Status |
+| --- | --- |
+| Encrypt one video with a minimal blob writer; play it through `cinasafe://` in libmpv embedded in a Tauri 2 window with an HTML overlay button that pauses it | **Met on Linux X11.** The full blob format (not just a minimal writer), libmpv through `cinasafe://`, and video under the HTML controls in one window. Clicking the HTML seek bar was verified with a screenshot. The ⏯ button sends `cycle pause` through the same command path. |
+| Works on Windows 11, Ubuntu (Wayland) and Ubuntu (X11), or a documented fallback per 6.3 works | **Partly.** X11 works. Wayland: video works, but the web layer can't be checked in this container. Windows: code and installer build in CI, never run. Both need a real machine. |
+| Seeking to 10 random points in a 4K file each completes in under 1 s from a USB 3 stick | **Met in simulation.** A 40 Mb/s 2160p file through a throttled 80 MiB/s, 2 ms/read source took at most 268 ms over 10 seeks. Even at USB 2-class 25 MiB/s the worst was 545 ms. Confirm with a real stick. |
+| `docs/SPIKE.md` records approach, results and decisions | Met (this file). |
+
+Go/no-go: **go for Linux**. Hold Windows and Wayland sign-off until someone runs the steps
+below on real hardware.
+
 ## What the spike asked
 
 1. Can mpv play media straight out of the encrypted blob format, from memory only, fast enough

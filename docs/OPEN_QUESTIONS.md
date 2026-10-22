@@ -2,22 +2,29 @@
 
 Ambiguities in the brief, each with the conservative choice taken until someone decides.
 
-## Q1. The brief was truncated (blocking)
+## Q1. The brief was truncated (resolved)
 
-The copy of the brief this work started from ends in section 8.1, partway through
-`CREATE TABLE progress (media_file_id INTEGER`. Sections 9–15 are missing: the rest of the
-schema, 10 (threat model), 12 (CI and releases), 14 (milestones and acceptance criteria) and
-15 (open questions).
+Milestone 0 started from a copy of the brief that stopped in section 8.1. The full brief is now
+in `docs/BRIEF.md`. Milestone 0 is checked against its section 14 criteria in
+`docs/SPIKE.md`. Several earlier guesses turn out to match it: user-supplied TMDB key (8.3),
+temp webview data dir (10), checksummed tag releases (12).
 
-**Taken:** Milestone 0 was scoped from sections 0 and 6.3 alone: prove the stream bridge and
-the window embedding, record results in `docs/SPIKE.md`, build nothing on top.
-**Needed:** the full brief, especially section 14, before Milestone 1.
+## Q2. Licence (resolved: Apache-2.0)
 
-## Q2. Licence file disagrees with the brief
+The brief originally said GPL-3.0-or-later; the owner chose **Apache-2.0**, which `LICENSE`
+already contained. `docs/BRIEF.md`, every crate's `license` field and the package metadata now
+say Apache-2.0.
 
-The brief says GPL-3.0-or-later. The repository's `LICENSE` is Apache-2.0.
-**Taken:** neither the licence file nor any `license =` field was changed. Relicensing is the
-owner's call. (libmpv and FFmpeg builds with GPL parts would require GPL anyway.)
+**Consequence for libmpv (open):** the app loads libmpv at runtime, but the Windows packages
+ship `libmpv-2.dll` next to it. The third-party build CI downloads today (zhongfly/mpv-winbuild)
+enables GPL parts of mpv and FFmpeg. Shipping that DLL makes the bundle as a whole subject to
+the GPL, and its source must be offered. To keep releases cleanly Apache-2.0:
+- build libmpv ourselves in its LGPL configuration (mpv `-Dgpl=false`, FFmpeg without
+  `--enable-gpl`/`--enable-nonfree`), as `third_party/mpv` is meant to (brief 3.1, 12), and
+- ship the LGPL licence texts and a source offer for the DLL.
+LGPL builds lose a few GPL-only filters and encoders that playback doesn't need. Until that
+exists, treat CI's Windows artifacts as test builds, not releases. Linux packages use the
+distribution's libmpv, so the distribution handles it.
 
 ## Q3. Subtitle base direction (section 7.2)
 
@@ -27,17 +34,14 @@ Hebrew/Arabic lines show their final punctuation on the wrong side (`docs/SPIKE.
 the "Fix RTL punctuation" rewrite only has to move leading punctuation to the end; the RLE…PDF
 wrap stays as specified and is harmless. Not yet decided; nothing in the app depends on it.
 
-## Q4. Traces on the host from the web engine and GPU driver (section 0)
+## Q4. Traces on the host from the web engine and GPU driver (answered by brief 10)
 
 Even with Tauri `incognito`, WebKitGTK writes `~/.local/share/<identifier>/` (salts, HSTS
-database, cache directory). Mesa writes `~/.cache/mesa_shader_cache/`. WebView2 will want a
-user-data folder on Windows. None of these contain library data, but they show that Cinasafe
-ran on the machine. The brief forbids decrypted data on the host. It does not say whether
-usage traces count; that is presumably section 10, which is missing.
-**Conservative proposal:** Linux: put the webview data directory in a fresh directory under
-`$XDG_RUNTIME_DIR` (RAM-backed), delete it on exit, and set `MESA_SHADER_CACHE_DISABLE=true`
-before any GL init. Windows: put the WebView2 user-data folder on the stick under `.cinasafe/`.
-The spike shows the Linux variant leaves nothing behind.
+database, cache directory), Mesa writes `~/.cache/mesa_shader_cache/`, and WebView2 needs a
+user-data folder. Brief section 10 settles it: point the WebView2 user-data folder and
+WebKitGTK's data and cache dirs at a fresh temp dir, delete it on exit and on next launch, and
+disable disk caching. To do in the app shell. Also set `MESA_SHADER_CACHE_DISABLE=true` before
+any GL init. The spike shows the Linux variant leaves nothing behind.
 
 ## Q5. Other caches mpv/libass may write
 
