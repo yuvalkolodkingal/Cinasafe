@@ -223,9 +223,7 @@ pub fn write_blob<R: Read, W: Write>(
         }
         let nonce = chunk_nonce(&header.nonce_prefix, i);
         let aad = chunk_aad(&header_bytes, i, i + 1 == count);
-        cipher
-            .encrypt_in_place(Nonce::from_slice(&nonce), &aad, &mut *buf)
-            .map_err(|_| Error::TooLarge)?;
+        cipher.encrypt_in_place(Nonce::from_slice(&nonce), &aad, &mut *buf).map_err(|_| Error::TooLarge)?;
         dst.write_all(&buf)?;
     }
     let mut probe = [0u8; 1];
@@ -292,10 +290,8 @@ impl ChunkSource for std::fs::File {
 impl ChunkSource for Vec<u8> {
     fn read_exact_at(&self, buf: &mut [u8], offset: u64) -> io::Result<()> {
         let start = usize::try_from(offset).map_err(|_| io::ErrorKind::UnexpectedEof)?;
-        let src = start
-            .checked_add(buf.len())
-            .and_then(|end| self.get(start..end))
-            .ok_or(io::ErrorKind::UnexpectedEof)?;
+        let src =
+            start.checked_add(buf.len()).and_then(|end| self.get(start..end)).ok_or(io::ErrorKind::UnexpectedEof)?;
         buf.copy_from_slice(src);
         Ok(())
     }
@@ -382,9 +378,7 @@ impl Shared {
         })?;
         let nonce = chunk_nonce(&h.nonce_prefix, i);
         let aad = chunk_aad(&self.header_bytes, i, i + 1 == h.chunk_count());
-        self.cipher
-            .decrypt_in_place(Nonce::from_slice(&nonce), &aad, &mut *buf)
-            .map_err(|_| Error::ChunkAuth(i))?;
+        self.cipher.decrypt_in_place(Nonce::from_slice(&nonce), &aad, &mut *buf).map_err(|_| Error::ChunkAuth(i))?;
         Ok(buf)
     }
 }
@@ -404,12 +398,7 @@ impl BlobReader {
         Self::open_with(src, key, expected_id, true)
     }
 
-    pub fn open_with(
-        src: impl ChunkSource,
-        key: &[u8; 32],
-        expected_id: BlobId,
-        prefetch: bool,
-    ) -> Result<BlobReader> {
+    pub fn open_with(src: impl ChunkSource, key: &[u8; 32], expected_id: BlobId, prefetch: bool) -> Result<BlobReader> {
         let mut header_bytes = [0u8; HEADER_LEN];
         src.read_exact_at(&mut header_bytes, 0).map_err(|e| {
             if e.kind() == io::ErrorKind::UnexpectedEof {
@@ -438,14 +427,12 @@ impl BlobReader {
         let (prefetch_tx, worker) = if prefetch && header.chunk_count() > 1 {
             let (tx, rx) = mpsc::sync_channel::<u64>(PREFETCH_CHUNKS as usize * 2);
             let s = shared.clone();
-            let handle = std::thread::Builder::new()
-                .name("cblob-prefetch".into())
-                .spawn(move || {
-                    for i in rx {
-                        // Errors surface again when the reader itself asks for the chunk.
-                        let _ = s.get_chunk(i, false);
-                    }
-                })?;
+            let handle = std::thread::Builder::new().name("cblob-prefetch".into()).spawn(move || {
+                for i in rx {
+                    // Errors surface again when the reader itself asks for the chunk.
+                    let _ = s.get_chunk(i, false);
+                }
+            })?;
             (Some(tx), Some(handle))
         } else {
             (None, None)
@@ -498,10 +485,7 @@ impl Read for BlobReader {
         let cs = self.shared.header.chunk_size as u64;
         let i = self.pos / cs;
         let off = (self.pos % cs) as usize;
-        let chunk = self
-            .shared
-            .get_chunk(i, true)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let chunk = self.shared.get_chunk(i, true).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         let n = buf.len().min(chunk.len() - off);
         buf[..n].copy_from_slice(&chunk[off..off + n]);
         self.pos += n as u64;

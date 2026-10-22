@@ -18,8 +18,7 @@ pub fn derive_blob_key(master_key: &[u8; 32], vault_id: &[u8; 16], blob_id: &Blo
     info[..BLOB_KEY_INFO.len()].copy_from_slice(BLOB_KEY_INFO);
     info[BLOB_KEY_INFO.len()..].copy_from_slice(&blob_id.0);
     let mut okm = Zeroizing::new([0u8; 32]);
-    hk.expand(&info, okm.as_mut())
-        .expect("32 bytes is a valid HKDF-SHA256 output length");
+    hk.expand(&info, okm.as_mut()).expect("32 bytes is a valid HKDF-SHA256 output length");
     okm
 }
 

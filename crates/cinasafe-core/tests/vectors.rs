@@ -83,8 +83,7 @@ fn blob_vectors() {
         std::fs::write(&index_path, serde_json::to_string_pretty(&vs).unwrap() + "\n").unwrap();
     }
 
-    let stored: Vec<Vector> =
-        serde_json::from_str(&std::fs::read_to_string(&index_path).unwrap()).unwrap();
+    let stored: Vec<Vector> = serde_json::from_str(&std::fs::read_to_string(&index_path).unwrap()).unwrap();
     assert_eq!(stored.len(), built.len());
     for (s, (v, sealed)) in stored.iter().zip(&built) {
         assert_eq!(s, v, "vector metadata changed: {}", v.name);
