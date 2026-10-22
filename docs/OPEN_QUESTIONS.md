@@ -68,3 +68,31 @@ ask the reader to allocate up to 4 GiB per chunk. **Taken:** readers reject chun
 or over 64 MiB (`MAX_CHUNK_SIZE`). Writers only use 1 MiB (tests use smaller). Documented in
 `FORMAT.md`; no format-version change, since every blob the spec allows writing is still
 readable.
+
+## Q9. Shipping a TMDB API key in release builds
+
+TMDB is free for non-commercial use with attribution, but its terms don't say whether an
+open-source app may embed a key. **Taken:** no key is shipped. Users without a key still
+get TV metadata from TVmaze; movie metadata needs their own free TMDB key
+(`CINASAFE_TMDB_KEY`, later a Settings field). If TMDB confirms a project key is fine, CI can
+inject it from a repository secret at build time.
+
+## Q10. Packaging formats vs. the brief's "run from the stick"
+
+The brief ships a portable `.exe` and AppImages on the stick, with no install. `.deb`, `.rpm`
+and the Windows installer were added on request; they install Cinasafe on a computer and
+complement the portable builds. Notes:
+
+- The `.deb` depends on `libmpv2` (Debian 12+, Ubuntu 23.04+). **Ubuntu 22.04 and Mint 21
+  only have libmpv1** (client API 1.x, unsupported). For those, libmpv has to be bundled,
+  which is what the AppImage is for (not built yet: libmpv is loaded at runtime, so
+  `linuxdeploy` won't pick it up automatically; it needs an explicit bundling recipe).
+- The `.rpm` requires the soname `libmpv.so.2()(64bit)`, which Fedora (`mpv-libs`) and
+  openSUSE (`libmpv2`) both provide.
+- Windows builds are **unsigned**, so SmartScreen will warn. Code signing needs a certificate
+  (decision and cost for the owner).
+- Only x86_64 is built so far. ARM64 Windows and aarch64 Linux need ARM runners, or cross
+  builds plus an ARM64 libmpv.
+- `libmpv-2.dll` comes from a third-party build (zhongfly/mpv-winbuild) and is GPL. Pin it
+  (`LIBMPV_RELEASE`, `LIBMPV_SHA256` repository variables) before any public release, or
+  build it ourselves (`third_party/mpv`).
