@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cinasafe embed spike</title>
+<style>
+  /* The page is transparent: video is drawn by mpv underneath the webview. */
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden;
+    font-family: "Noto Sans Hebrew", "Noto Sans", sans-serif; color: #fff; user-select: none; }
+  .top { position: absolute; inset-block-start: 16px; inset-inline: 16px; display: flex;
+    justify-content: space-between; align-items: center; gap: 12px; transition: opacity .3s; }
+  .pill { background: rgba(124, 58, 237, .85); padding-block: 8px; padding-inline: 14px;
+    border-radius: 999px; font-size: 18px; }
+  .probe { background: rgba(255, 0, 0, .5); padding: 8px 14px; border-radius: 8px; font-size: 14px; }
+  .controls { position: absolute; inset-inline: 0; inset-block-end: 0; padding: 24px 20px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,0)); transition: opacity .3s; }
+  .row { display: flex; align-items: center; gap: 12px; direction: ltr; /* time runs left to right */ }
+  button { background: rgba(255,255,255,.15); color: #fff; border: 0; border-radius: 8px;
+    padding: 8px 14px; font-size: 16px; cursor: pointer; }
+  input[type=range] { flex: 1; accent-color: #a78bfa; }
+  .time { font-variant-numeric: tabular-nums; min-width: 120px; text-align: end; }
+  .hidden { opacity: 0; cursor: none; }
+  #stats { font: 12px monospace; opacity: .8; margin-block-start: 8px; direction: ltr; }
+</style>
+</head>
+<body>
+  <div class="top" id="top">
+    <span class="pill">שלום — הממשק מצויר מעל הווידאו</span>
+    <span class="probe" id="mode">mode: …</span>
+  </div>
+  <div class="controls" id="controls">
+    <div class="row">
+      <button id="play">⏯</button>
+      <input id="seek" type="range" min="0" max="1000" value="0">
+      <span class="time" id="time">0:00 / 0:00</span>
+    </div>
+    <div id="stats"></div>
+  </div>
+<script>
+  const { invoke } = window.__TAURI__.core;
+  const { listen } = window.__TAURI__.event;
+  const $ = (id) => document.getElementById(id);
+  let duration = 0, pos = 0, dragging = false;
+  const fmt = (s) => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+  const render = () => {
+    $("time").textContent = `${fmt(pos)} / ${fmt(duration)}`;
+    if (!dragging && duration > 0) $("seek").value = Math.round(pos / duration * 1000);
+  };
+  listen("mpv-prop", ({ payload }) => {
+    if (payload.name === "time-pos") pos = payload.value ?? 0;
+    if (payload.name === "duration") duration = payload.value ?? 0;
+    render();
+  });
+  $("play").onclick = () => invoke("mpv_command", { args: ["cycle", "pause"] });
+  $("seek").oninput = () => { dragging = true; };
+  $("seek").onchange = () => {
+    dragging = false;
+    invoke("mpv_command", { args: ["seek", String($("seek").value / 10), "absolute-percent"] });
+  };
+  // Controls fade after 3 s without input (brief 6.4).
+  let idle;
+  const wake = () => {
+    for (const el of [$("controls"), $("top")]) el.classList.remove("hidden");
+    document.body.classList.remove("hidden");
+    clearTimeout(idle);
+    idle = setTimeout(() => {
+      for (const el of [$("controls"), $("top")]) el.classList.add("hidden");
+      document.body.classList.add("hidden");
+    }, 3000);
+  };
+  for (const ev of ["mousemove", "mousedown", "keydown"]) addEventListener(ev, wake);
+  addEventListener("keydown", (e) => {
+    const k = { " ": ["cycle", "pause"], ArrowRight: ["seek", "10"], ArrowLeft: ["seek", "-10"] }[e.key];
+    if (k) { e.preventDefault(); invoke("mpv_command", { args: k }); }
+  });
+  wake();
+  setInterval(async () => {
+    const s = await invoke("spike_info");
+    $("mode").textContent = `mode: ${s.mode}`;
+    if (!duration && s.duration) { duration = s.duration; render(); }
+    $("stats").textContent = JSON.stringify(s);
+  }, 1000);
+</script>
+</body>
+</html>
