@@ -1,8 +1,16 @@
 [package]
 name = "cinasafe-cli"
+description = "Cinasafe command-line tool for testing and scripting"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 repository.workspace = true
 
+[[bin]]
+name = "cinasafe"
+path = "src/main.rs"
+
 [dependencies]
+cinasafe-core = { path = "../cinasafe-core", features = ["spike-insecure-keyfile"] }
+cinasafe-player = { path = "../cinasafe-player" }
+clap = { version = "4.5.61", features = ["derive"] }
