@@ -1,0 +1,29 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/cinasafe-core",
+    "crates/cinasafe-player",
+    "crates/cinasafe-cli",
+    "spike/tauri-embed",
+]
+# The Tauri spike pulls in WebKitGTK/WebView2; build it explicitly with `-p tauri-embed-spike`.
+default-members = [
+    "crates/cinasafe-core",
+    "crates/cinasafe-player",
+    "crates/cinasafe-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+repository = "https://github.com/yuvalkolodkingal/cinasafe"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+
+# Crypto is unusably slow in debug builds; optimise dependencies even in dev.
+[profile.dev.package."*"]
+opt-level = 3

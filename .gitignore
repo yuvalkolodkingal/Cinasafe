@@ -1,0 +1,6 @@
+/target
+node_modules/
+/spike/out/
+*.cblob
+!crates/cinasafe-core/tests/vectors/*.cblob
+/third_party/mpv/windows-x86_64/
