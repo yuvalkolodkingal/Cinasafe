@@ -101,7 +101,8 @@ fn dirs_of(rel: &Path) -> Vec<String> {
     let parent = rel.parent().unwrap_or(Path::new(""));
     parent
         .components()
-        .filter_map(|c| matches!(c, Component::Normal(_)).then(|| c.as_os_str().to_string_lossy().into_owned()))
+        .filter(|c| matches!(c, Component::Normal(_)))
+        .map(|c| c.as_os_str().to_string_lossy().into_owned())
         .collect()
 }
 

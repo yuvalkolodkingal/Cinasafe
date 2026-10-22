@@ -295,7 +295,9 @@ pub fn scan(root: &Path) -> io::Result<ImportPlan> {
     }
 
     // Group episodes into shows by normalised title; keep the first spelling seen.
-    let mut shows: BTreeMap<String, (String, Vec<Option<u16>>, Vec<PlannedEpisode>)> = BTreeMap::new();
+    // normalised title -> (display title, years seen, episodes)
+    type ShowGroup = (String, Vec<Option<u16>>, Vec<PlannedEpisode>);
+    let mut shows: BTreeMap<String, ShowGroup> = BTreeMap::new();
     for (v, mut s) in videos.into_iter().zip(attached) {
         s.sort_by(|a, b| a.path.cmp(&b.path));
         match v.guess {
@@ -321,7 +323,7 @@ pub fn scan(root: &Path) -> io::Result<ImportPlan> {
         });
         plan.shows.push(PlannedShow { title, year: most_common(&years), episodes });
     }
-    plan.movies.sort_by(|a, b| (normalize_title(&a.title), a.year).cmp(&(normalize_title(&b.title), b.year)));
+    plan.movies.sort_by_key(|m| (normalize_title(&m.title), m.year));
     Ok(plan)
 }
 
