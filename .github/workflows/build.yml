@@ -93,7 +93,9 @@ jobs:
           "$($archive.Name) $hash" | Out-File -Encoding utf8 "$dir/SOURCE.txt"
       - name: Build installer
         working-directory: ${{ env.APP_DIR }}
-        run: npx --yes "@tauri-apps/cli@$env:TAURI_CLI_VERSION" build --bundles nsis
+        # The extra config adds libmpv-2.dll to the installer. It lives in its own file because
+        # tauri-build requires listed resources to exist, which plain `cargo test` can't provide.
+        run: npx --yes "@tauri-apps/cli@$env:TAURI_CLI_VERSION" build --bundles nsis --config tauri.windows-bundle.conf.json
       - name: Build the cinasafe CLI
         run: cargo build --release -p cinasafe-cli
       - name: Collect artifacts
@@ -108,9 +110,11 @@ jobs:
           Compress-Archive -Path "$portable/*" -DestinationPath dist/Cinasafe-Windows-x86_64-portable.zip
           Remove-Item -Recurse $portable
           Copy-Item target/release/bundle/nsis/*.exe dist/
-          Get-ChildItem dist -File | ForEach-Object {
+          # Hash first, then write: piping straight into Out-File would list the sums file itself.
+          $sums = Get-ChildItem dist -File | ForEach-Object {
             "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)"
-          } | Out-File -Encoding utf8 dist/SHA256SUMS-windows.txt
+          }
+          $sums | Out-File -Encoding utf8 dist/SHA256SUMS-windows.txt
           Get-Content dist/SHA256SUMS-windows.txt
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
