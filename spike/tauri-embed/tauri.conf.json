@@ -26,6 +26,8 @@
     "shortDescription": "Encrypted, portable movie and TV library on a USB stick",
     "longDescription": "Cinasafe turns a USB stick into an encrypted, portable movie and TV library with a streaming-service interface. This is a developer preview of the playback shell.",
     "homepage": "https://github.com/yuvalkolodkingal/cinasafe",
-    "publisher": "Cinasafe contributors"
+    "publisher": "Cinasafe contributors",
+    "license": "Apache-2.0",
+    "licenseFile": "../../LICENSE"
   }
 }

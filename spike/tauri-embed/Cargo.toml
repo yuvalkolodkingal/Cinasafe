@@ -3,6 +3,7 @@ name = "tauri-embed-spike"
 description = "Milestone 0: embed libmpv video under the Tauri web UI"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 publish = false
 
 [dependencies]
