@@ -1,0 +1,5 @@
+{"_id":"s1","air_date":"2015-02-15","name":"עונה 1","overview":"","id":2,"poster_path":"/p-fauda-s1.jpg","season_number":1,
+ "episodes":[
+  {"air_date":"2015-02-15","episode_number":1,"episode_type":"standard","id":11,"name":"פרק 1","overview":"","production_code":"","runtime":45,"season_number":1,"show_id":64230,"still_path":"/still-s1e1.jpg","vote_average":7.5,"vote_count":10,"crew":[],"guest_stars":[]},
+  {"air_date":"2015-02-22","episode_number":2,"episode_type":"standard","id":12,"name":"פרק 2","overview":"דורון מחפש...","production_code":"","runtime":44,"season_number":1,"show_id":64230,"still_path":null,"vote_average":7.5,"vote_count":10,"crew":[],"guest_stars":[]}
+ ]}

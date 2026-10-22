@@ -1,0 +1,900 @@
+{
+ "id": 15315,
+ "url": "https://www.tvmaze.com/shows/15315/fauda",
+ "name": "Fauda",
+ "type": "Scripted",
+ "language": "Hebrew",
+ "genres": [
+  "Drama",
+  "Action",
+  "Thriller"
+ ],
+ "status": "To Be Determined",
+ "runtime": 45,
+ "averageRuntime": 45,
+ "premiered": "2015-02-15",
+ "ended": null,
+ "officialSite": "https://www.yes.co.il/contents/Pages/israeli_series/fauda.aspx",
+ "schedule": {
+  "time": "22:15",
+  "days": [
+   "Thursday"
+  ]
+ },
+ "rating": {
+  "average": 7.6
+ },
+ "weight": 98,
+ "network": {
+  "id": 554,
+  "name": "Yes",
+  "country": {
+   "name": "Israel",
+   "code": "IL",
+   "timezone": "Asia/Jerusalem"
+  },
+  "officialSite": null
+ },
+ "webChannel": null,
+ "dvdCountry": null,
+ "externals": {
+  "tvrage": null,
+  "thetvdb": 291866,
+  "imdb": "tt4565380"
+ },
+ "image": {
+  "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/631/1579218.jpg",
+  "original": "https://static.tvmaze.com/uploads/images/original_untouched/631/1579218.jpg"
+ },
+ "summary": "<p><b>Fauda</b> (Arabic for 'Chaos') depicts the two-sided story of the Israeli-Palestinian conflict. Doron, a commander of undercover Israeli unit operating inside Palestinian territories, and his team, are hunting down Hamas activist Abu-Ahmed. On the other side of the fence, the tragic life of Abu-Ahmed and his family, and the reasons for their escalating hatred towards Israel.</p>",
+ "updated": 1784145402,
+ "_links": {
+  "self": {
+   "href": "https://api.tvmaze.com/shows/15315"
+  },
+  "previousepisode": {
+   "href": "https://api.tvmaze.com/episodes/3622030",
+   "name": "Episode 11"
+  }
+ },
+ "_embedded": {
+  "seasons": [
+   {
+    "id": 40799,
+    "url": "https://www.tvmaze.com/seasons/40799/fauda-season-1",
+    "number": 1,
+    "name": "",
+    "episodeOrder": 12,
+    "premiereDate": "2015-02-15",
+    "endDate": "2015-05-03",
+    "network": {
+     "id": 554,
+     "name": "Yes",
+     "country": {
+      "name": "Israel",
+      "code": "IL",
+      "timezone": "Asia/Jerusalem"
+     },
+     "officialSite": null
+    },
+    "webChannel": null,
+    "image": null,
+    "summary": "<p>A top Israeli agent comes out of retirement to hunt for a Palestinian fighter he thought he'd killed, setting a chaotic chain of events into motion.</p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/seasons/40799"
+     }
+    }
+   },
+   {
+    "id": 79716,
+    "url": "https://www.tvmaze.com/seasons/79716/fauda-season-2",
+    "number": 2,
+    "name": "",
+    "episodeOrder": 12,
+    "premiereDate": "2017-12-31",
+    "endDate": "2018-03-18",
+    "network": {
+     "id": 554,
+     "name": "Yes",
+     "country": {
+      "name": "Israel",
+      "code": "IL",
+      "timezone": "Asia/Jerusalem"
+     },
+     "officialSite": null
+    },
+    "webChannel": null,
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/280/700797.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/280/700797.jpg"
+    },
+    "summary": "<p>Doron teams up with his former undercover unit when an old enemy who has targeted him for revenge also launches a more ambitious covert plan.</p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/seasons/79716"
+     }
+    }
+   },
+   {
+    "id": 102573,
+    "url": "https://www.tvmaze.com/seasons/102573/fauda-season-3",
+    "number": 3,
+    "name": "",
+    "episodeOrder": 12,
+    "premiereDate": "2019-12-26",
+    "endDate": "2020-03-12",
+    "network": {
+     "id": 554,
+     "name": "Yes",
+     "country": {
+      "name": "Israel",
+      "code": "IL",
+      "timezone": "Asia/Jerusalem"
+     },
+     "officialSite": null
+    },
+    "webChannel": null,
+    "image": null,
+    "summary": "<p>Doron ensnares a determined young boxer when a months-long covert mission puts the team on the trail of a Hamas leader high on Shin Bet's wanted list.</p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/seasons/102573"
+     }
+    }
+   },
+   {
+    "id": 140844,
+    "url": "https://www.tvmaze.com/seasons/140844/fauda-season-4",
+    "number": 4,
+    "name": "",
+    "episodeOrder": 12,
+    "premiereDate": "2022-07-14",
+    "endDate": "2022-09-29",
+    "network": {
+     "id": 554,
+     "name": "Yes",
+     "country": {
+      "name": "Israel",
+      "code": "IL",
+      "timezone": "Asia/Jerusalem"
+     },
+     "officialSite": null
+    },
+    "webChannel": null,
+    "image": null,
+    "summary": null,
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/seasons/140844"
+     }
+    }
+   },
+   {
+    "id": 201243,
+    "url": "https://www.tvmaze.com/seasons/201243/fauda-season-5",
+    "number": 5,
+    "name": "",
+    "episodeOrder": null,
+    "premiereDate": "2026-05-18",
+    "endDate": "2026-07-13",
+    "network": {
+     "id": 554,
+     "name": "Yes",
+     "country": {
+      "name": "Israel",
+      "code": "IL",
+      "timezone": "Asia/Jerusalem"
+     },
+     "officialSite": null
+    },
+    "webChannel": null,
+    "image": null,
+    "summary": null,
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/seasons/201243"
+     }
+    }
+   }
+  ],
+  "episodes": [
+   {
+    "id": 698981,
+    "url": "https://www.tvmaze.com/episodes/698981/fauda-1x01-episode-1",
+    "name": "Episode 1",
+    "season": 1,
+    "number": 1,
+    "type": "regular",
+    "airdate": "2015-02-15",
+    "airtime": "22:15",
+    "airstamp": "2015-02-15T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 7.9
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/435915.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/435915.jpg"
+    },
+    "summary": "<p>Discovering that Abu Ahmad will attend his brother's wedding, Doron joins his old team for a covert strike, but the plan quickly goes off the rails.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/698981"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 698982,
+    "url": "https://www.tvmaze.com/episodes/698982/fauda-1x02-episode-2",
+    "name": "Episode 2",
+    "season": 1,
+    "number": 2,
+    "type": "regular",
+    "airdate": "2015-02-22",
+    "airtime": "22:15",
+    "airstamp": "2015-02-22T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429220.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429220.jpg"
+    },
+    "summary": "<p>Having tasted action again, Doron pleads with Moreno to rejoin the squad. Meanwhile, Amal determines to martyr herself to avenge her husband.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/698982"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 698983,
+    "url": "https://www.tvmaze.com/episodes/698983/fauda-1x03-episode-3",
+    "name": "Episode 3",
+    "season": 1,
+    "number": 3,
+    "type": "regular",
+    "airdate": "2015-03-01",
+    "airtime": "22:15",
+    "airstamp": "2015-03-01T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429241.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429241.jpg"
+    },
+    "summary": "<p>Abu Ahmad leans on Walid to organize an immediate retaliatory attack, and Doron and Nurit go undercover to close in on their quarry.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/698983"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 698984,
+    "url": "https://www.tvmaze.com/episodes/698984/fauda-1x04-episode-4",
+    "name": "Episode 4",
+    "season": 1,
+    "number": 4,
+    "type": "regular",
+    "airdate": "2015-03-08",
+    "airtime": "22:15",
+    "airstamp": "2015-03-08T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9.2
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429257.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429257.jpg"
+    },
+    "summary": "<p>Doron sets his sights on recruiting Shirin to his cause, Abu Ahmad risks his life to see his wife, and Moreno sends the team on a daring daytime raid.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/698984"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 698985,
+    "url": "https://www.tvmaze.com/episodes/698985/fauda-1x05-episode-5",
+    "name": "Episode 5",
+    "season": 1,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2015-03-15",
+    "airtime": "22:15",
+    "airstamp": "2015-03-15T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429382.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429382.jpg"
+    },
+    "summary": "<p>A senior Israeli officer tries to smoke Abu Ahmad out of hiding. Ali fights suspicions of duplicity, and Boaz joins the squad on a risky ambush.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/698985"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 699108,
+    "url": "https://www.tvmaze.com/episodes/699108/fauda-1x06-episode-6",
+    "name": "Episode 6",
+    "season": 1,
+    "number": 6,
+    "type": "regular",
+    "airdate": "2015-03-22",
+    "airtime": "22:15",
+    "airstamp": "2015-03-22T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429404.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429404.jpg"
+    },
+    "summary": "<p>Blamed for the disastrous ambush, Doron takes matters into his own hands and asks the team to join him on a mission to set things right.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/699108"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 699109,
+    "url": "https://www.tvmaze.com/episodes/699109/fauda-1x07-episode-7",
+    "name": "Episode 7",
+    "season": 1,
+    "number": 7,
+    "type": "regular",
+    "airdate": "2015-03-29",
+    "airtime": "22:15",
+    "airstamp": "2015-03-29T19:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9.3
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429415.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429415.jpg"
+    },
+    "summary": "<p>While Moreno tries to track down the rogue team, Doron sinks his hooks deeper into Shirin and takes drastic measures to make a prisoner exchange.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/699109"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 699110,
+    "url": "https://www.tvmaze.com/episodes/699110/fauda-1x08-episode-8",
+    "name": "Episode 8",
+    "season": 1,
+    "number": 8,
+    "type": "regular",
+    "airdate": "2015-04-05",
+    "airtime": "22:15",
+    "airstamp": "2015-04-05T19:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429432.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429432.jpg"
+    },
+    "summary": "<p>In the wake of the prisoner exchange, Doron disappears, Walid confronts Abu Ahmad about his tactics, and Moreno's boss threatens to dissolve the team.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/699110"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 699111,
+    "url": "https://www.tvmaze.com/episodes/699111/fauda-1x09-episode-9",
+    "name": "Episode 9",
+    "season": 1,
+    "number": 9,
+    "type": "regular",
+    "airdate": "2015-04-12",
+    "airtime": "22:15",
+    "airstamp": "2015-04-12T19:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9.1
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429451.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429451.jpg"
+    },
+    "summary": "<p>While suspicion grows between Abu Ahmad and his inner circle, Doron poses as a would-be suicide bomber to get perilously close to his target.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/699111"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 699112,
+    "url": "https://www.tvmaze.com/episodes/699112/fauda-1x10-episode-10",
+    "name": "Episode 10",
+    "season": 1,
+    "number": 10,
+    "type": "regular",
+    "airdate": "2015-04-19",
+    "airtime": "22:15",
+    "airstamp": "2015-04-19T19:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429473.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429473.jpg"
+    },
+    "summary": "<p>Doron gets a surprise visitor while waiting to learn his fate. Abu Ahmad lays out his master plan that could change the region's balance of power.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/699112"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 699113,
+    "url": "https://www.tvmaze.com/episodes/699113/fauda-1x11-episode-11",
+    "name": "Episode 11",
+    "season": 1,
+    "number": 11,
+    "type": "regular",
+    "airdate": "2015-04-26",
+    "airtime": "22:15",
+    "airstamp": "2015-04-26T19:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9.2
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429742.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429742.jpg"
+    },
+    "summary": "<p>Doron's bosses give him the go-ahead to carry out his plan, but he discovers the toll his family has paid for his obsession with Abu Ahmad.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/699113"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 699114,
+    "url": "https://www.tvmaze.com/episodes/699114/fauda-1x12-episode-12",
+    "name": "Episode 12",
+    "season": 1,
+    "number": 12,
+    "type": "regular",
+    "airdate": "2015-05-03",
+    "airtime": "22:15",
+    "airstamp": "2015-05-03T19:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9.3
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/171/429774.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/171/429774.jpg"
+    },
+    "summary": "<p>While the team scrambles to give Doron backup on his mission into the lion's den, Walid makes a decision that could change everything.</p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/699114"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1381302,
+    "url": "https://www.tvmaze.com/episodes/1381302/fauda-2x01-episode-1",
+    "name": "Episode 1",
+    "season": 2,
+    "number": 1,
+    "type": "regular",
+    "airdate": "2017-12-31",
+    "airtime": "22:15",
+    "airstamp": "2017-12-31T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/435008.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/435008.jpg"
+    },
+    "summary": "<p>Doron joins his old team for an operation to take out the mastermind behind a bombing attack -- and who also wants revenge against Doron himself.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1381302"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1384807,
+    "url": "https://www.tvmaze.com/episodes/1384807/fauda-2x02-episode-2",
+    "name": "Episode 2",
+    "season": 2,
+    "number": 2,
+    "type": "regular",
+    "airdate": "2018-01-07",
+    "airtime": "22:15",
+    "airstamp": "2018-01-07T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.6
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/435213.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/435213.jpg"
+    },
+    "summary": "<p>Tensions rise on both sides as Doron's team intensifies its hunt and Abu Samara hands Al Makdasi an ultimatum. Shirin faces tough questions.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1384807"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1386636,
+    "url": "https://www.tvmaze.com/episodes/1386636/fauda-2x03-episode-3",
+    "name": "Episode 3",
+    "season": 2,
+    "number": 3,
+    "type": "regular",
+    "airdate": "2018-01-14",
+    "airtime": "22:15",
+    "airstamp": "2018-01-14T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 9
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/435412.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/435412.jpg"
+    },
+    "summary": "<p>Rebuked by Walid, Al Makdasi doubles down on his renegade plan to exact revenge. Doron goes rogue during an operation to offer Shirin a way out.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1386636"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1390803,
+    "url": "https://www.tvmaze.com/episodes/1390803/fauda-2x04-episode-4",
+    "name": "Episode 4",
+    "season": 2,
+    "number": 4,
+    "type": "regular",
+    "airdate": "2018-01-21",
+    "airtime": "22:15",
+    "airstamp": "2018-01-21T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/435422.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/435422.jpg"
+    },
+    "summary": "<p>Nidal's plan takes an unexpected lethal turn and backs him into a corner. Shirin reaches out to Doron, putting them both at risk.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1390803"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1395161,
+    "url": "https://www.tvmaze.com/episodes/1395161/fauda-2x05-episode-5",
+    "name": "Episode 5",
+    "season": 2,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2018-01-28",
+    "airtime": "22:15",
+    "airstamp": "2018-01-28T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.6
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/435669.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/435669.jpg"
+    },
+    "summary": "<p>Doron scrambles to protect his family when Nidal gets too close. Shirin puts a dangerous plan in motion. Walid learns some distressing news.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1395161"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1401513,
+    "url": "https://www.tvmaze.com/episodes/1401513/fauda-2x06-episode-6",
+    "name": "Episode 6",
+    "season": 2,
+    "number": 6,
+    "type": "regular",
+    "airdate": "2018-02-04",
+    "airtime": "22:15",
+    "airstamp": "2018-02-04T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/435910.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/435910.jpg"
+    },
+    "summary": "<p>Sensing a chance to strike, Nidal regroups and leads a nighttime raid. While Walid faces interrogation, Doron takes Shirin under his wing.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1401513"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1405996,
+    "url": "https://www.tvmaze.com/episodes/1405996/fauda-2x07-episode-7",
+    "name": "Episode 7",
+    "season": 2,
+    "number": 7,
+    "type": "regular",
+    "airdate": "2018-02-11",
+    "airtime": "22:15",
+    "airstamp": "2018-02-11T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.6
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/436183.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/436183.jpg"
+    },
+    "summary": "<p>Nidal defends his new allegiance to Samir. Captain Ayub blackmails Abu Samara into helping him lay a trap. Sagi's nerves jeopardize a mission.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1405996"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1410726,
+    "url": "https://www.tvmaze.com/episodes/1410726/fauda-2x08-episode-8",
+    "name": "Episode 8",
+    "season": 2,
+    "number": 8,
+    "type": "regular",
+    "airdate": "2018-02-18",
+    "airtime": "22:15",
+    "airstamp": "2018-02-18T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.6
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/436477.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/436477.jpg"
+    },
+    "summary": "<p>After discovering Nidal's true loyalties, Abu Maher joins in the effort to track him down. Captain Ayub and Naor escalate their plan to break Walid.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1410726"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1414301,
+    "url": "https://www.tvmaze.com/episodes/1414301/fauda-2x09-episode-9",
+    "name": "Episode 9",
+    "season": 2,
+    "number": 9,
+    "type": "regular",
+    "airdate": "2018-02-25",
+    "airtime": "22:15",
+    "airstamp": "2018-02-25T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/436667.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/436667.jpg"
+    },
+    "summary": "<p>With Doron grieving a loss, Shirin faces tough questions and the team carries out a rogue operation to get answers. Nidal sends Maher on a mission.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1414301"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1414302,
+    "url": "https://www.tvmaze.com/episodes/1414302/fauda-2x10-episode-10",
+    "name": "Episode 10",
+    "season": 2,
+    "number": 10,
+    "type": "regular",
+    "airdate": "2018-03-04",
+    "airtime": "22:15",
+    "airstamp": "2018-03-04T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.6
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/436736.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/436736.jpg"
+    },
+    "summary": "<p>Worried that Doron is sinking into despair, the team rallies to galvanize him to action. Samir confronts Nidal. Abu Maher makes a discovery.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1414302"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1414303,
+    "url": "https://www.tvmaze.com/episodes/1414303/fauda-2x11-episode-11",
+    "name": "Episode 11",
+    "season": 2,
+    "number": 11,
+    "type": "regular",
+    "airdate": "2018-03-11",
+    "airtime": "22:15",
+    "airstamp": "2018-03-11T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/437036.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/437036.jpg"
+    },
+    "summary": "<p>An operation to bring down Nidal backs the team into a lethal corner. Abu Maher makes a heartrending decision, and Captain Ayub learns critical intel.</p><p><br /> </p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1414303"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   },
+   {
+    "id": 1414304,
+    "url": "https://www.tvmaze.com/episodes/1414304/fauda-2x12-episode-12",
+    "name": "Episode 12",
+    "season": 2,
+    "number": 12,
+    "type": "regular",
+    "airdate": "2018-03-18",
+    "airtime": "22:15",
+    "airstamp": "2018-03-18T20:15:00+00:00",
+    "runtime": 45,
+    "rating": {
+     "average": 8.8
+    },
+    "image": {
+     "medium": "https://static.tvmaze.com/uploads/images/medium_landscape/174/437096.jpg",
+     "original": "https://static.tvmaze.com/uploads/images/original_untouched/174/437096.jpg"
+    },
+    "summary": "<p>Doron faces a fresh threat as the scope of Nidal's unfolding plan becomes clear, while the team and Abu Samara move to intervene before time runs out.</p>",
+    "_links": {
+     "self": {
+      "href": "https://api.tvmaze.com/episodes/1414304"
+     },
+     "show": {
+      "href": "https://api.tvmaze.com/shows/15315",
+      "name": "Fauda"
+     }
+    }
+   }
+  ]
+ }
+}

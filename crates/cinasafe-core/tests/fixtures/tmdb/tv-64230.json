@@ -1,0 +1,6 @@
+{"adult":false,"backdrop_path":"/bd-fauda.jpg","episode_run_time":[45],"first_air_date":"2015-02-15","genres":[{"id":10759,"name":"Action & Adventure"},{"id":18,"name":"Drama"}],"id":64230,"last_air_date":"2023-01-19","name":"פאודה","number_of_episodes":48,"number_of_seasons":4,"original_language":"he","original_name":"פאודה","overview":"דורון חוזר מהפרישה...","poster_path":"/p-fauda-he.jpg",
+ "seasons":[
+  {"air_date":"2016-01-01","episode_count":2,"id":1,"name":"Specials","overview":"","poster_path":null,"season_number":0},
+  {"air_date":"2015-02-15","episode_count":12,"id":2,"name":"עונה 1","overview":"","poster_path":"/p-fauda-s1.jpg","season_number":1},
+  {"air_date":"2017-12-31","episode_count":12,"id":3,"name":"עונה 2","overview":"","poster_path":"/p-fauda-s2.jpg","season_number":2}
+ ]}

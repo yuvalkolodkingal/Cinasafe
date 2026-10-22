@@ -7,6 +7,7 @@
 pub mod blob;
 pub mod crypto;
 pub mod import;
+pub mod metadata;
 #[cfg(feature = "spike-insecure-keyfile")]
 pub mod spike;
 pub mod subtitles;
