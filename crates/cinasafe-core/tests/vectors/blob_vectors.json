@@ -1,0 +1,46 @@
+[
+  {
+    "name": "empty",
+    "master_key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "vault_id": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+    "blob_id": "101112131415161718191a1b1c1d1e00",
+    "blob_key": "0ddb7dab90503f4390b2622e94016db1cfed5cdf6529b436f35d83aac32837a9",
+    "nonce_prefix": "f0f1f2f3f4f5f6f7",
+    "chunk_size": 16,
+    "plaintext": "",
+    "file": "empty.cblob"
+  },
+  {
+    "name": "two-full-chunks",
+    "master_key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "vault_id": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+    "blob_id": "101112131415161718191a1b1c1d1e01",
+    "blob_key": "6ba33170f8489ac25c1ddf1fbdde4ad3c4fa3a42dc70f4a7579c0847a55a0d4c",
+    "nonce_prefix": "f1f2f3f4f5f6f7f8",
+    "chunk_size": 16,
+    "plaintext": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "file": "two-full-chunks.cblob"
+  },
+  {
+    "name": "partial-last-chunk",
+    "master_key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "vault_id": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+    "blob_id": "101112131415161718191a1b1c1d1e02",
+    "blob_key": "e07720cf70b53daa44f866d034f49a8251b8ae17400e342b82b05a4a449964be",
+    "nonce_prefix": "f2f3f4f5f6f7f8f9",
+    "chunk_size": 16,
+    "plaintext": "43696e6173616665207465737420766563746f723a207468726565206368756e6b73",
+    "file": "partial-last-chunk.cblob"
+  },
+  {
+    "name": "hebrew-utf8-default-chunk",
+    "master_key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "vault_id": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+    "blob_id": "101112131415161718191a1b1c1d1e03",
+    "blob_key": "01426b3b7cde11e0aa829a146f4fc3ed7a241c6e9c410a0c93f5c882d52f2ae9",
+    "nonce_prefix": "f3f4f5f6f7f8f9fa",
+    "chunk_size": 1048576,
+    "plaintext": "d7a9d79cd795d79d2c20d7a2d795d79cd79d212048656c6c6f",
+    "file": "hebrew-utf8-default-chunk.cblob"
+  }
+]
