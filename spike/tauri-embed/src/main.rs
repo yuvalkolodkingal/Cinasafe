@@ -88,11 +88,13 @@ impl Spike {
     }
 }
 
-struct Opener(SpikeVault);
+/// Without a test vault the app still starts; nothing can be opened.
+struct Opener(Option<SpikeVault>);
 
 impl StreamOpener for Opener {
     fn open(&self, id: BlobId) -> io::Result<Box<dyn MediaStream>> {
-        Ok(Box::new(self.0.open_blob(id).map_err(io::Error::other)?))
+        let vault = self.0.as_ref().ok_or(io::ErrorKind::NotFound)?;
+        Ok(Box::new(vault.open_blob(id).map_err(io::Error::other)?))
     }
 }
 
@@ -154,6 +156,31 @@ fn event_loop(app: tauri::AppHandle, mpv: Arc<Mpv>) {
     }
 }
 
+#[tauri::command]
+fn unavailable_info(error: tauri::State<'_, String>) -> serde_json::Value {
+    serde_json::json!({ "mode": "unavailable", "error": error.inner() })
+}
+
+#[tauri::command]
+fn unavailable_command(error: tauri::State<'_, String>) -> Result<(), String> {
+    Err(error.inner().clone())
+}
+
+fn run_without_player(error: String) {
+    tauri::Builder::default()
+        .setup(|app| {
+            // No video underneath: a transparent window would show nothing (or the desktop).
+            if let Some(w) = app.get_webview_window("main") {
+                w.set_background_color(Some(tauri::window::Color(17, 17, 17, 255)))?;
+            }
+            Ok(())
+        })
+        .manage(error)
+        .invoke_handler(tauri::generate_handler![unavailable_info, unavailable_command])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+
 /// brief 6.3 option 3: mpv keeps its own borderless window, glued under a
 /// transparent, always-on-top Tauri window that carries the controls.
 pub fn attach_separate(window: &tauri::WebviewWindow, spike: Arc<Spike>) {
@@ -180,15 +207,17 @@ pub fn attach_separate(window: &tauri::WebviewWindow, spike: Arc<Spike>) {
 fn main() {
     let mode = Mode::from_env();
     let root = PathBuf::from(std::env::var("CINASAFE_SPIKE_ROOT").unwrap_or_else(|_| ".".into()));
-    let vault = SpikeVault::open(&root).unwrap_or_else(|e| {
-        eprintln!("[spike] cannot open spike vault at {}: {e}", root.display());
-        std::process::exit(2);
-    });
+    let vault =
+        SpikeVault::open(&root).inspect_err(|e| eprintln!("[spike] no spike vault at {}: {e}", root.display())).ok();
 
-    let mut mpv = Mpv::new().unwrap_or_else(|e| {
-        eprintln!("[spike] {e}");
-        std::process::exit(3);
-    });
+    let mut mpv = match Mpv::new() {
+        Ok(m) => m,
+        Err(e) => {
+            // Start anyway so the window can say what is missing (e.g. libmpv-2.dll).
+            eprintln!("[spike] {e}");
+            return run_without_player(e.to_string());
+        }
+    };
     let set = |k: &str, v: &str| {
         if let Err(e) = mpv.set_option(k, v) {
             eprintln!("[spike] {e}");

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "linux": {
+      "deb": {
+        "depends": ["libmpv2"]
+      },
+      "rpm": {
+        "depends": ["libmpv.so.2()(64bit)"],
+        "release": "1"
+      }
+    }
+  }
+}

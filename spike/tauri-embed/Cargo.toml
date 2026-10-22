@@ -10,10 +10,10 @@ cinasafe-core = { path = "../../crates/cinasafe-core", features = ["spike-insecu
 cinasafe-player = { path = "../../crates/cinasafe-player" }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
-tauri = "2"
+tauri = { version = "2", features = [] }
 
 [build-dependencies]
-tauri-build = "2"
+tauri-build = { version = "2", features = [] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 gdkx11 = "0.18"

@@ -38,7 +38,17 @@
     <div id="stats"></div>
   </div>
 <script>
-  const { invoke } = window.__TAURI__.core;
+  const tauriInvoke = window.__TAURI__.core.invoke;
+  // When libmpv is missing the app exposes "unavailable_*" commands instead.
+  let unavailable = false;
+  const invoke = async (cmd, args) => {
+    if (unavailable) cmd = cmd === "spike_info" ? "unavailable_info" : "unavailable_command";
+    try { return await tauriInvoke(cmd, args); }
+    catch (e) {
+      if (!unavailable && String(e).includes("not found")) { unavailable = true; return invoke(cmd, args); }
+      throw e;
+    }
+  };
   const { listen } = window.__TAURI__.event;
   const $ = (id) => document.getElementById(id);
   let duration = 0, pos = 0, dragging = false;
@@ -77,7 +87,8 @@
   wake();
   setInterval(async () => {
     const s = await invoke("spike_info");
-    $("mode").textContent = `mode: ${s.mode}`;
+    $("mode").textContent = s.error ? `Cinasafe developer preview: ${s.error}` : `mode: ${s.mode}`;
+    if (s.error) document.body.style.background = "#111";
     if (!duration && s.duration) { duration = s.duration; render(); }
     $("stats").textContent = JSON.stringify(s);
   }, 1000);
