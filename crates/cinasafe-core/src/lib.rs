@@ -6,6 +6,8 @@
 
 pub mod blob;
 pub mod crypto;
+#[cfg(feature = "spike-insecure-keyfile")]
+pub mod spike;
 
 pub use blob::{BlobId, BlobReader, BlobWriteOptions, ChunkSource, Header};
 
