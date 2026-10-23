@@ -33,7 +33,7 @@ fn create_unlock_and_wrong_password() {
 
 #[test]
 fn recovery_words_unlock_and_can_be_replaced() {
-    let (dir, mut v, words) = new_vault(true);
+    let (dir, v, words) = new_vault(true);
     let words = words.unwrap();
     // Case and spacing don't matter.
     let shouted = RecoveryWords::parse(&words.as_str().to_uppercase().replace(' ', "   ")).unwrap();
@@ -54,7 +54,7 @@ fn recovery_words_unlock_and_can_be_replaced() {
 
 #[test]
 fn change_password_keeps_recovery_and_media() {
-    let (dir, mut v, words) = new_vault(true);
+    let (dir, v, words) = new_vault(true);
     let id = v.write_blob(&b"hello"[..], 5, &BlobWriteOptions::default()).unwrap();
     assert!(v.check_password(&pw("correct horse")).unwrap());
     assert!(!v.check_password(&pw("nope")).unwrap());
@@ -68,15 +68,15 @@ fn change_password_keeps_recovery_and_media() {
 
 #[test]
 fn vault_json_matches_brief_and_leaks_nothing() {
-    let (dir, mut v, _) = new_vault(false);
+    let (dir, v, _) = new_vault(false);
     let mf = v
-        .library_mut()
+        .library()
         .add_media_file(
             BlobId([3; 16]),
             &NewMediaFile { original_name: "Secret.Title.mkv".into(), ..Default::default() },
         )
         .unwrap();
-    v.library_mut()
+    v.library()
         .add_movie(mf, &MovieMeta { title: "Secret Title".into(), ..Default::default() }, None, None)
         .unwrap();
     v.save_library().unwrap();
@@ -108,17 +108,17 @@ fn newer_vault_is_refused() {
 
 #[test]
 fn library_survives_and_falls_back_to_backup() {
-    let (dir, mut v, _) = new_vault(false);
-    let add = |v: &mut Vault, n: u8, t: &str| {
+    let (dir, v, _) = new_vault(false);
+    let add = |v: &Vault, n: u8, t: &str| {
         let mf = v
-            .library_mut()
+            .library()
             .add_media_file(BlobId([n; 16]), &NewMediaFile { original_name: t.into(), ..Default::default() })
             .unwrap();
-        v.library_mut().add_movie(mf, &MovieMeta { title: t.into(), ..Default::default() }, None, None).unwrap();
+        v.library().add_movie(mf, &MovieMeta { title: t.into(), ..Default::default() }, None, None).unwrap();
         v.save_library().unwrap();
     };
-    add(&mut v, 1, "First");
-    add(&mut v, 2, "Second");
+    add(&v, 1, "First");
+    add(&v, 2, "Second");
     drop(v);
     let titles = |v: &Vault| -> Vec<String> {
         v.library()
@@ -139,7 +139,7 @@ fn library_survives_and_falls_back_to_backup() {
     let last = raw.len() - 1;
     raw[last] ^= 0xff;
     fs::write(&main, raw).unwrap();
-    let mut v = Vault::unlock_with_password(dir.path(), &pw("correct horse")).unwrap();
+    let v = Vault::unlock_with_password(dir.path(), &pw("correct horse")).unwrap();
     assert!(v.library_restored_from_backup());
     assert_eq!(titles(&v), ["First"]);
     // The next save repairs it.
@@ -200,14 +200,14 @@ fn walk_count(dir: &Path, suffix: &str) -> usize {
 
 #[test]
 fn integrity_check_reports_problems() {
-    let (_dir, mut v, _) = new_vault(false);
+    let (_dir, v, _) = new_vault(false);
     let good = v.write_blob(&b"good"[..], 4, &BlobWriteOptions::default()).unwrap();
     let bad = v.write_blob(&[1u8; 5000][..], 5000, &BlobWriteOptions::default()).unwrap();
     let orphan = v.write_blob(&b"orphan"[..], 6, &BlobWriteOptions::default()).unwrap();
     for id in [good, bad] {
-        v.library_mut().add_media_file(id, &NewMediaFile { original_name: "x".into(), ..Default::default() }).unwrap();
+        v.library().add_media_file(id, &NewMediaFile { original_name: "x".into(), ..Default::default() }).unwrap();
     }
-    v.library_mut()
+    v.library()
         .add_media_file(BlobId([0xee; 16]), &NewMediaFile { original_name: "gone".into(), ..Default::default() })
         .unwrap();
 

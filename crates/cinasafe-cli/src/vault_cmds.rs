@@ -104,7 +104,7 @@ pub fn unlock_check(root: &Path) -> Result<(), String> {
 }
 
 pub fn add(root: &Path, files: &[PathBuf]) -> Result<(), String> {
-    let mut v = unlock(root)?;
+    let v = unlock(root)?;
     for path in files {
         let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
         let f = File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -126,7 +126,7 @@ pub fn add(root: &Path, files: &[PathBuf]) -> Result<(), String> {
             eprintln!();
         }
         let mf = v
-            .library_mut()
+            .library()
             .add_media_file(id, &NewMediaFile { original_name: name.clone(), size_bytes: size, ..Default::default() })
             .map_err(|e| e.to_string())?;
         v.save_library().map_err(explain)?;
@@ -202,7 +202,7 @@ pub fn export(root: &Path, id: &str, dest: &Path, force: bool) -> Result<(), Str
 }
 
 pub fn passwd(root: &Path) -> Result<(), String> {
-    let mut v = unlock(root)?;
+    let v = unlock(root)?;
     let new = new_password("CINASAFE_NEW_PASSWORD")?;
     v.change_password(&new).map_err(explain)?;
     println!("Password changed. Your recovery key, if any, still works.");
@@ -210,7 +210,7 @@ pub fn passwd(root: &Path) -> Result<(), String> {
 }
 
 pub fn recovery(root: &Path, remove: bool) -> Result<(), String> {
-    let mut v = unlock(root)?;
+    let v = unlock(root)?;
     if remove {
         v.remove_recovery().map_err(explain)?;
         println!("Recovery key removed. Only the password opens this vault now.");

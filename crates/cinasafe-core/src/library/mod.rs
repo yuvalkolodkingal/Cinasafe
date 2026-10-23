@@ -30,7 +30,9 @@ pub type Result<T> = std::result::Result<T, LibraryError>;
 
 pub struct Library {
     conn: Connection,
-    dirty: bool,
+    /// Bumped on every change; a save records the generation it wrote.
+    generation: u64,
+    saved_generation: u64,
 }
 
 fn now() -> String {
@@ -171,7 +173,7 @@ impl Library {
         conn.execute_batch("PRAGMA foreign_keys = ON;")?;
         conn.execute_batch(SCHEMA)?;
         conn.execute("INSERT INTO meta (key, value) VALUES ('schema_version', ?1)", [SCHEMA_VERSION.to_string()])?;
-        Ok(Library { conn, dirty: true })
+        Ok(Library { conn, generation: 1, saved_generation: 0 })
     }
 
     /// Loads a serialised database of `len` bytes from `r` (a decrypting blob reader).
@@ -185,7 +187,7 @@ impl Library {
         if v > SCHEMA_VERSION {
             return Err(LibraryError::TooNew(v));
         }
-        Ok(Library { conn, dirty: false })
+        Ok(Library { conn, generation: 0, saved_generation: 0 })
     }
 
     /// The whole database as bytes, for encrypting onto the stick.
@@ -195,15 +197,21 @@ impl Library {
     }
 
     pub fn is_dirty(&self) -> bool {
-        self.dirty
+        self.generation != self.saved_generation
     }
 
-    pub fn mark_saved(&mut self) {
-        self.dirty = false;
+    pub fn generation(&self) -> u64 {
+        self.generation
+    }
+
+    /// Records that the state as of `generation` is on disk. Changes made
+    /// since (while the save was writing) keep the library dirty.
+    pub fn mark_saved(&mut self, generation: u64) {
+        self.saved_generation = self.saved_generation.max(generation);
     }
 
     fn changed(&mut self) {
-        self.dirty = true;
+        self.generation += 1;
     }
 
     // ---- settings ---------------------------------------------------------

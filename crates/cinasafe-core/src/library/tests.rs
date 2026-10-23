@@ -228,3 +228,15 @@ fn fts_query_quotes_terms() {
     assert_eq!(fts_query("Breaking bad").as_deref(), Some("\"Breaking\"* \"bad\"*"));
     assert_eq!(fts_query("  -- ").as_deref(), None);
 }
+
+#[test]
+fn changes_during_a_save_keep_it_dirty() {
+    let mut lib = Library::new().unwrap();
+    let snapshot = lib.generation();
+    lib.mark_saved(snapshot);
+    assert!(!lib.is_dirty());
+    let during = lib.generation();
+    movie(&mut lib, 1, "Late", 2020, &[]);
+    lib.mark_saved(during);
+    assert!(lib.is_dirty(), "a change made while saving must not be marked saved");
+}

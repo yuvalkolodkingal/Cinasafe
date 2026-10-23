@@ -4,6 +4,8 @@
 use std::fs::{self, File};
 use std::io::{self, BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Mutex, MutexGuard};
 
 use base64::Engine;
 use serde::{Deserialize, Serialize};
@@ -197,9 +199,11 @@ pub struct Vault {
     dir: PathBuf,
     vault_id: [u8; 16],
     master: SecretKey,
-    file: VaultFile,
-    library: Library,
-    library_restored: bool,
+    file: Mutex<VaultFile>,
+    library: Mutex<Library>,
+    library_restored: AtomicBool,
+    /// Serialises library saves (they share the .tmp/.bak files).
+    save_lock: Mutex<()>,
 }
 
 fn now_rfc3339() -> String {
@@ -378,14 +382,15 @@ impl Vault {
         })?;
         let words = recovery_entropy.as_deref().map(RecoveryWords::from_entropy);
 
-        let mut vault = Vault {
+        let vault = Vault {
             root: root.to_path_buf(),
             dir,
             vault_id,
             master,
-            file,
-            library: Library::new()?,
-            library_restored: false,
+            file: Mutex::new(file),
+            library: Mutex::new(Library::new()?),
+            library_restored: AtomicBool::new(false),
+            save_lock: Mutex::new(()),
         };
         vault.save_library()?;
         // vault.json last: a half-created vault has no header and isn't detected.
@@ -407,7 +412,16 @@ impl Vault {
         })?;
         let dir = Self::vault_dir(root);
         let (library, library_restored) = Self::load_library(&dir, &master, &vault_id)?;
-        Ok(Vault { root: root.to_path_buf(), dir, vault_id, master, file, library, library_restored })
+        Ok(Vault {
+            root: root.to_path_buf(),
+            dir,
+            vault_id,
+            master,
+            file: Mutex::new(file),
+            library: Mutex::new(library),
+            library_restored: AtomicBool::new(library_restored),
+            save_lock: Mutex::new(()),
+        })
     }
 
     pub fn unlock_with_password(root: &Path, password: &Password) -> Result<Vault> {
@@ -426,9 +440,10 @@ impl Vault {
 
     /// True if `password` opens this vault (for "current password" prompts).
     pub fn check_password(&self, password: &Password) -> Result<bool> {
-        let params = self.file.kdf_params()?;
+        let file = self.header();
+        let params = file.kdf_params()?;
         let kek = crypto::password_kek(password.as_bytes(), &params)?;
-        let w = self.file.wrap(KIND_PASSWORD).ok_or(Error::MalformedHeader("no password wrap"))?;
+        let w = file.wrap(KIND_PASSWORD).ok_or(Error::MalformedHeader("no password wrap"))?;
         let nonce: [u8; 12] = b64_fixed(&w.nonce, "wrap nonce")?;
         let ct: [u8; WRAPPED_LEN] = b64_fixed(&w.ciphertext, "wrap ciphertext")?;
         Ok(crypto::unwrap_key(&kek, &self.vault_id, KIND_PASSWORD, &nonce, &ct)
@@ -437,18 +452,18 @@ impl Vault {
 
     /// Re-wraps the master key under a new password (fresh salt, current
     /// default cost). No media is re-encrypted.
-    pub fn change_password(&mut self, new: &Password) -> Result<()> {
+    pub fn change_password(&self, new: &Password) -> Result<()> {
         self.change_password_with_params(new, KdfParams::new_default()?)
     }
 
-    pub fn change_password_with_params(&mut self, new: &Password, params: KdfParams) -> Result<()> {
+    pub fn change_password_with_params(&self, new: &Password, params: KdfParams) -> Result<()> {
         if new.is_empty() {
             return Err(Error::WrongPassword);
         }
         let kek = crypto::password_kek(new.as_bytes(), &params)?;
         let nonce: [u8; 12] = random_bytes()?;
         let ct = crypto::wrap_key(&kek, &self.vault_id, KIND_PASSWORD, &nonce, self.master.expose());
-        let mut file = self.file.clone();
+        let mut file = self.header();
         file.set_kdf(&params);
         file.set_wrap(KIND_PASSWORD, &nonce, &ct);
         file.app_version = env!("CARGO_PKG_VERSION").into();
@@ -456,41 +471,47 @@ impl Vault {
     }
 
     /// Replaces (or adds) the recovery key; the old words stop working.
-    pub fn replace_recovery(&mut self) -> Result<RecoveryWords> {
+    pub fn replace_recovery(&self) -> Result<RecoveryWords> {
         let entropy = Zeroizing::new(random_bytes::<32>()?);
         let words = RecoveryWords::from_entropy(&entropy);
         let kek = crypto::recovery_kek(&entropy, &self.vault_id);
         let nonce: [u8; 12] = random_bytes()?;
         let ct = crypto::wrap_key(&kek, &self.vault_id, KIND_RECOVERY, &nonce, self.master.expose());
-        let mut file = self.file.clone();
+        let mut file = self.header();
         file.set_wrap(KIND_RECOVERY, &nonce, &ct);
         self.commit_header(file)?;
         Ok(words)
     }
 
-    pub fn remove_recovery(&mut self) -> Result<()> {
-        let mut file = self.file.clone();
+    pub fn remove_recovery(&self) -> Result<()> {
+        let mut file = self.header();
         file.wraps.retain(|w| w.kind != KIND_RECOVERY);
         self.commit_header(file)
     }
 
     pub fn has_recovery(&self) -> bool {
-        self.file.wrap(KIND_RECOVERY).is_some()
+        self.file.lock().unwrap().wrap(KIND_RECOVERY).is_some()
     }
 
-    pub fn created_at(&self) -> &str {
-        &self.file.created_at
+    pub fn created_at(&self) -> String {
+        self.file.lock().unwrap().created_at.clone()
     }
 
-    fn commit_header(&mut self, file: VaultFile) -> Result<()> {
+    fn header(&self) -> VaultFile {
+        self.file.lock().unwrap().clone()
+    }
+
+    fn commit_header(&self, file: VaultFile) -> Result<()> {
+        let mut cur = self.file.lock().unwrap();
         let json = serde_json::to_vec_pretty(&file).map_err(|_| Error::MalformedHeader("vault.json"))?;
         write_atomic(&self.dir.join(VAULT_FILE), &json)?;
-        self.file = file;
+        *cur = file;
         Ok(())
     }
 
     fn write_header(&self) -> Result<()> {
-        let json = serde_json::to_vec_pretty(&self.file).map_err(|_| Error::MalformedHeader("vault.json"))?;
+        let file = self.header();
+        let json = serde_json::to_vec_pretty(&file).map_err(|_| Error::MalformedHeader("vault.json"))?;
         write_atomic(&self.dir.join(VAULT_FILE), &json)
     }
 
@@ -507,17 +528,15 @@ impl Vault {
         &self.dir
     }
 
-    pub fn library(&self) -> &Library {
-        &self.library
-    }
-
-    pub fn library_mut(&mut self) -> &mut Library {
-        &mut self.library
+    /// The library. Held briefly: blob I/O never needs it, so a long import
+    /// doesn't block playback or browsing.
+    pub fn library(&self) -> MutexGuard<'_, Library> {
+        self.library.lock().unwrap_or_else(|p| p.into_inner())
     }
 
     /// True when `library.db.enc` was unreadable and the `.bak` copy was used.
     pub fn library_restored_from_backup(&self) -> bool {
-        self.library_restored
+        self.library_restored.load(Ordering::Relaxed)
     }
 
     fn blob_key(&self, id: &BlobId) -> crate::crypto::Key32 {
@@ -661,8 +680,13 @@ impl Vault {
 
     /// Encrypts the library and swaps it in: `.tmp`, fsync, current → `.bak`,
     /// `.tmp` → current. A crash at any point leaves a readable copy.
-    pub fn save_library(&mut self) -> Result<()> {
-        let data = self.library.serialize()?;
+    pub fn save_library(&self) -> Result<()> {
+        let _saving = self.save_lock.lock().unwrap_or_else(|p| p.into_inner());
+        // Snapshot under the library lock, write without it.
+        let (data, generation) = {
+            let lib = self.library();
+            (lib.serialize()?, lib.generation())
+        };
         let main = self.dir.join(LIBRARY_FILE);
         let tmp = main.with_extension("enc.tmp");
         let bak = main.with_extension("enc.bak");
@@ -679,13 +703,13 @@ impl Vault {
             fs::rename(&main, &bak)?;
         }
         fs::rename(&tmp, &main)?;
-        self.library.mark_saved();
-        self.library_restored = false;
+        self.library().mark_saved(generation);
+        self.library_restored.store(false, Ordering::Relaxed);
         Ok(())
     }
 
-    pub fn save_library_if_dirty(&mut self) -> Result<bool> {
-        if self.library.is_dirty() {
+    pub fn save_library_if_dirty(&self) -> Result<bool> {
+        if self.library().is_dirty() {
             self.save_library()?;
             return Ok(true);
         }
@@ -745,14 +769,14 @@ impl Vault {
     pub fn integrity_check(&self, mut progress: impl FnMut(&IntegrityProgress)) -> Result<IntegrityReport> {
         let on_disk = self.blobs_on_disk()?;
         let referenced: std::collections::BTreeSet<[u8; 16]> =
-            self.library.referenced_blobs()?.into_iter().map(|b| b.0).collect();
+            self.library().referenced_blobs()?.into_iter().map(|b| b.0).collect();
         let present: std::collections::BTreeSet<[u8; 16]> = on_disk.iter().map(|(b, _)| b.0).collect();
         let mut p = IntegrityProgress {
             total: on_disk.len() as u64,
             bytes_total: on_disk.iter().map(|(_, s)| s).sum(),
             ..Default::default()
         };
-        let mut report = IntegrityReport { library_restored_from_backup: self.library_restored, ..Default::default() };
+        let mut report = IntegrityReport { library_restored_from_backup: self.library_restored_from_backup(), ..Default::default() };
         progress(&p);
         let mut buf = vec![0u8; 1 << 20];
         for (id, size) in &on_disk {
