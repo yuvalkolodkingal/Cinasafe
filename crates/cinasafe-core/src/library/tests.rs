@@ -240,3 +240,15 @@ fn changes_during_a_save_keep_it_dirty() {
     lib.mark_saved(during);
     assert!(lib.is_dirty(), "a change made while saving must not be marked saved");
 }
+
+#[test]
+fn watch_items_serialize_in_camel_case() {
+    let mut lib = Library::new().unwrap();
+    let (_, eps) = show(&mut lib, 10, "Fauda", 1, 1);
+    let mf = lib.episode(eps[0]).unwrap().media_file_id;
+    lib.record_position(mf, 60_000, None).unwrap();
+    let v = serde_json::to_value(&lib.continue_watching(1).unwrap()[0]).unwrap();
+    assert_eq!(v["kind"], "episode");
+    assert_eq!(v["showTitle"], "Fauda");
+    assert!(v.get("showId").is_some() && v.get("show_title").is_none(), "{v}");
+}

@@ -228,6 +228,8 @@ pub enum WatchItem {
     Movie {
         movie: Movie,
     },
+    // On an enum, rename_all only renames variants; the fields need their own.
+    #[serde(rename_all = "camelCase")]
     Episode {
         episode: Episode,
         show_id: Id,

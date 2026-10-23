@@ -1,0 +1,241 @@
+/* Base elements. Layout uses CSS logical properties only (brief 7.4). */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  block-size: 100%;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--size-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* The player draws over mpv's video, which is underneath the webview. */
+html.player-active,
+html.player-active body,
+html.player-active #root {
+  background: transparent;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+img {
+  display: block;
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: var(--size-meta);
+}
+
+.accent-text {
+  color: var(--accent);
+}
+
+.danger-text {
+  color: var(--danger-text);
+}
+
+.tone-good {
+  color: var(--good);
+}
+
+.tone-bad {
+  color: var(--danger-text);
+}
+
+.tone-warn,
+.tone-accent {
+  color: var(--accent);
+}
+
+.tone-muted {
+  color: var(--text-muted);
+}
+
+.mono-ish {
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.page-title {
+  font-size: var(--size-page-title);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.section-title {
+  font-size: var(--size-section);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sub-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-block: 20px 10px;
+}
+
+.eyebrow {
+  display: block;
+  color: var(--accent);
+  font-size: var(--size-meta);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[lang='he'] .eyebrow,
+:root[lang='ar'] .eyebrow {
+  letter-spacing: 0;
+}
+
+/* Directional icons mirror in right-to-left layouts. */
+[dir='rtl'] .flip-rtl {
+  transform: scaleX(-1);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/* Titles in another script keep the surrounding alignment (an English title
+   in a Hebrew UI still starts at the inline start of its container). */
+[dir='auto'],
+bdi {
+  text-align: match-parent;
+  /* Blink and WebKit resolve the standard keyword against the element's own
+     direction; the prefixed one uses the parent's, which is what we want. */
+  text-align: -webkit-match-parent;
+}
+
+.page {
+  padding-inline: var(--gutter);
+  padding-block: 28px 64px;
+  max-inline-size: 1680px;
+  margin-inline: auto;
+}
+
+.center-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding-block: 64px;
+}
+
+.empty-line {
+  padding-block: 32px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .word-grid,
+  .word-grid * {
+    visibility: visible;
+  }
+  .word-grid {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    color: #000;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -77,6 +77,7 @@ fn main() {
             commands::vault_info,
             commands::vault_change_password,
             commands::vault_replace_recovery,
+            commands::vault_remove_recovery,
             commands::vault_integrity_check,
             commands::eject_drive,
             commands::library_home,

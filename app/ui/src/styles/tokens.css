@@ -1,0 +1,69 @@
+/* Design tokens from brief section 9.1 (approved mockups). */
+:root {
+  --bg: #0e0f12;
+  --surface-1: #17191e;
+  --surface-2: #20232a;
+  --surface-3: #26292f;
+  --border: #343842;
+  --text: #f2f1ee;
+  --text-muted: #a3a7b0;
+  --text-soft: #d6d8dd;
+  --accent: #f2b33d;
+  --on-accent: #141414;
+  --good: #8fd18b;
+  --danger-border: #e0705f;
+  --danger-text: #ff9c94;
+  --warning-bg: #2a2418;
+  --hero-placeholder: #1c2b33;
+
+  --font: 'Rubik', 'Noto Sans Hebrew', 'Noto Sans Arabic', system-ui, sans-serif;
+
+  --size-page-title: 36px;
+  --size-hero-title: 54px;
+  --size-section: 20px;
+  --size-body: 15px;
+  --size-meta: 13px;
+
+  --radius-control: 10px;
+  --radius-card: 16px;
+  --radius-panel: 14px;
+  --radius-poster: 10px;
+  --radius-pill: 999px;
+
+  --gutter: 48px;
+  --grid-gap: 20px;
+  --card-pad: 24px;
+
+  --target: 44px;
+  --focus: 0 0 0 3px var(--accent);
+  --topbar-h: 72px;
+}
+
+:root[data-theme='light'] {
+  --bg: #f6f5f2;
+  --surface-1: #ffffff;
+  --surface-2: #ebeae6;
+  --surface-3: #e1e0dc;
+  --border: #c9c8c3;
+  --text: #16171a;
+  --text-muted: #5b5f68;
+  --text-soft: #34373e;
+  --on-accent: #141414;
+  --good: #2f7d2b;
+  --danger-border: #c2412f;
+  --danger-text: #b3261e;
+  --warning-bg: #fbf0d9;
+  --hero-placeholder: #c9d6dc;
+}
+
+:root[lang='ar'] {
+  --font: 'Noto Sans Arabic', 'Rubik', system-ui, sans-serif;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --gutter: 24px;
+    --size-hero-title: 40px;
+    --size-page-title: 30px;
+  }
+}

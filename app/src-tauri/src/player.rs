@@ -540,7 +540,12 @@ fn on_file_loaded(mpv: &Mpv, inner: &Mutex<Inner>) {
                 c.first().map(|t| t.id)
             })
         };
-        let sid = pick(&i.state.sub_tracks, &i.sub_prefs, true);
+        // No preference set: a subtitle file the user imported was meant to be used.
+        let sid = if i.sub_prefs.is_empty() {
+            i.state.sub_tracks.iter().find(|t| t.subtitle_file_id.is_some()).map(|t| t.id)
+        } else {
+            pick(&i.state.sub_tracks, &i.sub_prefs, true)
+        };
         let delay = sid
             .and_then(|s| i.state.sub_tracks.iter().find(|t| t.id == s))
             .and_then(|t| t.subtitle_file_id)

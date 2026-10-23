@@ -245,6 +245,13 @@ pub async fn vault_replace_recovery(app: AppHandle, password: String) -> Result<
     .await
 }
 
+/// Used by the wizard's "Skip" on the recovery-key step (the vault was
+/// created with a key so its words could be shown) and by Settings.
+#[tauri::command]
+pub async fn vault_remove_recovery(app: AppHandle) -> Result<()> {
+    blocking(&app, |st| Ok(st.vault()?.remove_recovery()?)).await
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IntegrityReport {
