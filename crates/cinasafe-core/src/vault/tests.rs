@@ -76,9 +76,7 @@ fn vault_json_matches_brief_and_leaks_nothing() {
             &NewMediaFile { original_name: "Secret.Title.mkv".into(), ..Default::default() },
         )
         .unwrap();
-    v.library()
-        .add_movie(mf, &MovieMeta { title: "Secret Title".into(), ..Default::default() }, None, None)
-        .unwrap();
+    v.library().add_movie(mf, &MovieMeta { title: "Secret Title".into(), ..Default::default() }, None, None).unwrap();
     v.save_library().unwrap();
     let text = fs::read_to_string(dir.path().join(".cinasafe/vault.json")).unwrap();
     let j: serde_json::Value = serde_json::from_str(&text).unwrap();

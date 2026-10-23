@@ -776,7 +776,8 @@ impl Vault {
             bytes_total: on_disk.iter().map(|(_, s)| s).sum(),
             ..Default::default()
         };
-        let mut report = IntegrityReport { library_restored_from_backup: self.library_restored_from_backup(), ..Default::default() };
+        let mut report =
+            IntegrityReport { library_restored_from_backup: self.library_restored_from_backup(), ..Default::default() };
         progress(&p);
         let mut buf = vec![0u8; 1 << 20];
         for (id, size) in &on_disk {
