@@ -68,6 +68,7 @@ meson setup "$WORK/b/mpv" "$WORK/src/mpv" --prefix="$PREFIX" --buildtype=release
     -Dgpl=false -Dlibmpv=true -Dcplayer=false -Dd3d11=enabled -Dlua=disabled -Djavascript=disabled \
     -Dcdda=disabled -Ddvdnav=disabled -Dlibbluray=disabled -Dlibarchive=disabled -Dzimg=disabled \
     -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled -Dtests=false \
+    -Drubberband=disabled -Dvapoursynth=disabled -Dsixel=disabled -Dcaca=disabled -Djpeg=disabled \
     || meson configure "$WORK/b/mpv"
 ninja -C "$WORK/b/mpv" -j "$JOBS"
 ninja -C "$WORK/b/mpv" install
@@ -86,6 +87,13 @@ ntldd -R "$OUT/libmpv-2.dll" | tr '\\' '/' | awk '{print $3}' | while read -r de
     esac
 done
 strip --strip-unneeded "$OUT"/*.dll
+
+# -Dgpl=false doesn't stop mpv from linking GPL-only libraries it auto-detects.
+gpl_only='librubberband|libx264|libx265|libxvidcore|libpostproc|libcdio|libdvdnav|libdvdread|libsmbclient|libfdk-aac'
+if bad=$(ls "$OUT" | grep -iE "^($gpl_only)"); then
+    echo "error: GPL-only or non-free libraries are linked: $bad" >&2
+    exit 1
+fi
 
 # Licences and sources.
 mkdir -p "$OUT/licenses"

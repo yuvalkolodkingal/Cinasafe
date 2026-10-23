@@ -20,7 +20,9 @@ libmpv would make the bundle subject to the GPL, so builds now ship our own **LG
 mpv `-Dgpl=false`, and FFmpeg without `--enable-gpl` or `--enable-nonfree`
 (`third_party/mpv/build-*.sh`). The scripts refuse to finish with a GPL configuration. Each
 release attaches the exact sources and lists every bundled component in
-`THIRD_PARTY_LICENSES.md` (`docs/RELEASING.md`). The third-party GPL `libmpv-2.dll` CI used
+`THIRD_PARTY_LICENSES.md` (`docs/RELEASING.md`). `-Dgpl=false` alone isn't enough: mpv still auto-detects and links GPL-only libraries such
+as librubberband (a local build did). The scripts disable those features explicitly and fail
+if any bundled library needs a GPL-only one. The third-party GPL `libmpv-2.dll` CI used
 before is gone. The `.deb` and `.rpm` use the distribution's libmpv, under the
 distribution's licensing.
 

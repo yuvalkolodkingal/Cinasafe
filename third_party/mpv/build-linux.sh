@@ -96,7 +96,9 @@ meson_build "$WORK/src/libplacebo" "$WORK/b/libplacebo" -Dvulkan=disabled -Dopen
 meson_build "$WORK/src/mpv" "$WORK/b/mpv" -Dgpl=false -Dlibmpv=true -Dcplayer=false \
     -Dlua=disabled -Djavascript=disabled -Dcdda=disabled -Ddvdnav=disabled -Dlibbluray=disabled \
     -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled -Dtests=false \
-    -Dlibarchive=disabled -Dzimg=disabled -Dvulkan=disabled -Dshaderc=disabled -Dspirv-cross=disabled
+    -Dlibarchive=disabled -Dzimg=disabled -Dvulkan=disabled -Dshaderc=disabled -Dspirv-cross=disabled \
+    -Drubberband=disabled -Dvapoursynth=disabled -Dsixel=disabled -Dsndio=disabled -Dcaca=disabled \
+    -Djpeg=disabled
 if ! grep -q "'gpl': false\|gpl *: *false\|GPL: *NO\|#define HAVE_GPL 0" "$WORK/b/mpv/config.h" "$WORK/b/mpv/meson-logs/meson-log.txt" 2>/dev/null; then
     if grep -q '#define HAVE_GPL 1' "$WORK/b/mpv/config.h"; then
         echo "error: mpv was configured as GPL" >&2
@@ -114,6 +116,14 @@ for lib in libmpv.so.2 libavcodec.so libavformat.so libavutil.so libavfilter.so 
     patchelf --set-rpath '$ORIGIN' "$OUT/$soname"
 done
 strip --strip-unneeded "$OUT"/*.so*
+
+# -Dgpl=false doesn't stop mpv from linking GPL-only libraries it auto-detects
+# (librubberband did). Fail if anything bundled needs one.
+gpl_only='librubberband|libx264|libx265|libxvidcore|libpostproc|libcdio|libdvdnav|libdvdread|libsmbclient|libfdk-aac'
+if bad=$(for f in "$OUT"/*.so*; do objdump -p "$f" | awk '/NEEDED/ {print $2}'; done | sort -u | grep -E "^($gpl_only)"); then
+    echo "error: GPL-only or non-free libraries are linked: $bad" >&2
+    exit 1
+fi
 
 for f in mpv/LICENSE.LGPL ffmpeg/COPYING.LGPLv2.1 libplacebo/LICENSE dav1d/COPYING; do
     cp "$WORK/src/$f" "$OUT/$(dirname "$f")-$(basename "$f")"
