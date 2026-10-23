@@ -15,16 +15,23 @@ The brief originally said GPL-3.0-or-later; the owner chose **Apache-2.0**, whic
 already contained. `docs/BRIEF.md`, every crate's `license` field and the package metadata now
 say Apache-2.0.
 
-**Consequence for libmpv (resolved):** the app loads libmpv at runtime. Shipping a GPL
-libmpv would make the bundle subject to the GPL, so builds now ship our own **LGPL** libmpv:
-mpv `-Dgpl=false`, and FFmpeg without `--enable-gpl` or `--enable-nonfree`
-(`third_party/mpv/build-*.sh`). The scripts refuse to finish with a GPL configuration. Each
-release attaches the exact sources and lists every bundled component in
-`THIRD_PARTY_LICENSES.md` (`docs/RELEASING.md`). `-Dgpl=false` alone isn't enough: mpv still auto-detects and links GPL-only libraries such
-as librubberband (a local build did). The scripts disable those features explicitly and fail
-if any bundled library needs a GPL-only one. The third-party GPL `libmpv-2.dll` CI used
-before is gone. The `.deb` and `.rpm` use the distribution's libmpv, under the
-distribution's licensing.
+**Consequence for libmpv (resolved):** a GPL libmpv would make the app subject to the GPL,
+so builds use our own **LGPL** libmpv: mpv `-Dgpl=false`, and FFmpeg without `gpl`,
+`version3` or `nonfree` (`third_party/mpv/build-linux.sh`, `build-windows.ps1`). The scripts
+refuse to finish with a GPL configuration. `-Dgpl=false` alone isn't enough: mpv still
+auto-detects and links GPL-only libraries such as librubberband (a local build did), and on a
+machine with the distribution's FFmpeg it picked up its GPL libavdevice. The scripts disable
+those features explicitly and fail if anything links a GPL-only library.
+
+**libmpv is compiled into the app** (owner's request: libmpv must not be a separate
+dependency). Every package links mpv, FFmpeg, libplacebo, libass and dav1d statically
+(cargo feature `static-mpv`), so the portable exe and AppImage are single files and the
+`.deb`/`.rpm` no longer need the distribution's libmpv. Static linking of LGPL-2.1 code is
+allowed under section 6 when users can relink the work against a modified library; the
+app's complete source is public, with the scripts that build the libraries, so they can.
+Each release still attaches the libraries' exact sources and lists every component in
+`THIRD_PARTY_LICENSES.md` (`docs/RELEASING.md`). Development builds without the feature
+load the system's libmpv at run time instead.
 
 ## Q3. Subtitle base direction (section 7.2) (resolved)
 
@@ -91,12 +98,10 @@ The brief ships a portable `.exe` and AppImages on the stick, with no install. `
 and the Windows installer were added on request; they install Cinasafe on a computer and
 complement the portable builds. Notes:
 
-- The `.deb` depends on `libmpv2` (Debian 12+, Ubuntu 23.04+). **Ubuntu 22.04 and Mint 21
-  only have libmpv1** (client API 1.x, unsupported); they use the AppImage, which carries our
-  LGPL libmpv. The libmpv is added to the AppDir explicitly, and linuxdeploy bundles what it
-  needs.
-- The `.rpm` requires the soname `libmpv.so.2()(64bit)`, which Fedora (`mpv-libs`) and
-  openSUSE (`libmpv2`) both provide.
+- libmpv is compiled into the app (Q2), so the `.deb` and `.rpm` don't depend on the
+  distribution's libmpv, and Ubuntu 22.04 (which only has libmpv1) works with them too.
+  They depend on the desktop libraries the static libmpv uses (VA-API, PulseAudio, ALSA,
+  lcms2, ...); `tauri.linux.conf.json` lists them.
 - Windows builds are **unsigned**, so SmartScreen will warn. Code signing needs a certificate
   (decision and cost for the owner; `docs/RELEASING.md`).
 - **ARM:** the workflow builds linux-aarch64 and windows-arm64 on GitHub's ARM runners, but
@@ -141,11 +146,14 @@ provider.
 
 ## Q14. Layout of the player apps on the stick (brief 4.1)
 
-- Windows needs `libmpv-2.dll` and about thirty DLLs it depends on. To keep the stick's root
-  as brief 4.1 shows it, they live in `.cinasafe/runtime/windows-<arch>/`. The exe looks
-  there, and in `mpv\` next to itself for the portable zip and the installer
-  (`docs/RELEASING.md`). Everything in `runtime/` is public binaries, not vault data.
-- The AppImage carries its own libmpv, so Linux needs nothing extra on the stick.
+- Each player app is a single file with libmpv compiled in (Q2): `Cinasafe-Windows.exe`
+  needs only Windows' own DLLs and the WebView2 runtime, and the AppImage carries
+  everything else it needs.
+- Windows 11 and updated Windows 10 have the WebView2 runtime. For a computer without it,
+  Microsoft's fixed-version runtime can be unpacked on the stick into
+  `.cinasafe/runtime/webview2-x64/` (or `webview2-arm64/`); the app uses it only when no
+  installed runtime exists. Everything in `runtime/` is public binaries and licence texts,
+  not vault data.
 - `.cinasafe/apps.json` records which app version was copied for each platform, so
   Settings › Vault can show it. It is plaintext but says nothing about the library.
 - **Eject:** Linux unmounts through UDisks2 and powers the drive off. Windows doesn't call

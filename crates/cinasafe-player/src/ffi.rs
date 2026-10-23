@@ -1,15 +1,19 @@
-//! Minimal libmpv C API, loaded at runtime.
+//! Minimal libmpv C API.
 //!
-//! Loading with `libloading` instead of linking means the app starts (and can
-//! show a clear message) when libmpv is missing, and on Windows the DLL is
-//! picked up from beside the executable on the stick.
+//! With the `static-mpv` feature (release builds), libmpv and everything it
+//! needs is linked into the binary: there is no libmpv file to ship or find.
+//! Without it (development, tests against the system's libmpv), the library is
+//! loaded at run time with `libloading`, so the app still starts and shows a
+//! clear message when libmpv is missing.
 
 #![allow(non_camel_case_types)]
 
 use std::ffi::{c_char, c_int, c_void};
+#[cfg(not(feature = "static-mpv"))]
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
+#[cfg(not(feature = "static-mpv"))]
 use libloading::Library;
 
 pub enum mpv_handle {}
@@ -98,11 +102,26 @@ pub struct mpv_opengl_fbo {
 macro_rules! mpv_api {
     ($($name:ident : fn($($arg:ty),*) $(-> $ret:ty)?;)*) => {
         pub struct Api {
+            #[cfg(not(feature = "static-mpv"))]
             _lib: Library,
             $(pub $name: unsafe extern "C" fn($($arg),*) $(-> $ret)?,)*
         }
 
+        #[cfg(feature = "static-mpv")]
+        mod linked {
+            use super::*;
+            unsafe extern "C" {
+                $(pub fn $name($(_: $arg),*) $(-> $ret)?;)*
+            }
+        }
+
         impl Api {
+            #[cfg(feature = "static-mpv")]
+            fn linked() -> Api {
+                Api { $($name: linked::$name,)* }
+            }
+
+            #[cfg(not(feature = "static-mpv"))]
             unsafe fn load(lib: Library) -> Result<Api, String> {
                 $(
                     let $name = *lib
@@ -140,11 +159,11 @@ mpv_api! {
     mpv_render_context_free: fn(*mut mpv_render_context);
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(all(not(feature = "static-mpv"), target_os = "windows"))]
 const LIB_NAMES: &[&str] = &["libmpv-2.dll", "mpv-2.dll"];
-#[cfg(target_os = "macos")]
+#[cfg(all(not(feature = "static-mpv"), target_os = "macos"))]
 const LIB_NAMES: &[&str] = &["libmpv.2.dylib", "libmpv.dylib"];
-#[cfg(all(unix, not(target_os = "macos")))]
+#[cfg(all(not(feature = "static-mpv"), unix, not(target_os = "macos")))]
 const LIB_NAMES: &[&str] = &["libmpv.so.2", "libmpv.so"];
 
 /// Client API major version this wrapper is written against (mpv 0.35+).
@@ -166,6 +185,7 @@ pub fn platform_dir() -> String {
 /// - `.cinasafe/runtime/<platform>/` beside the executable (the app on a stick);
 /// - `../lib` from the executable (inside the AppImage);
 /// - the system search path.
+#[cfg(not(feature = "static-mpv"))]
 fn candidates() -> Vec<PathBuf> {
     let mut dirs = Vec::new();
     if let Some(dir) = std::env::var_os("CINASAFE_LIBMPV_DIR") {
@@ -186,6 +206,7 @@ fn candidates() -> Vec<PathBuf> {
 
 /// Loads a library. On Windows, a full path also makes Windows look for the
 /// DLLs it needs in its own folder (FFmpeg, libass, ... sit next to libmpv).
+#[cfg(not(feature = "static-mpv"))]
 unsafe fn open(path: &std::path::Path) -> Result<Library, libloading::Error> {
     #[cfg(windows)]
     {
@@ -199,6 +220,20 @@ unsafe fn open(path: &std::path::Path) -> Result<Library, libloading::Error> {
 
 static API: OnceLock<Result<Api, String>> = OnceLock::new();
 
+fn check_version(api: Api) -> Result<Api, String> {
+    let v = unsafe { (api.mpv_client_api_version)() };
+    if v >> 16 != API_MAJOR {
+        return Err(format!("libmpv client API {}.{} is not supported (need {API_MAJOR}.x)", v >> 16, v & 0xffff));
+    }
+    Ok(api)
+}
+
+#[cfg(feature = "static-mpv")]
+pub fn api() -> Result<&'static Api, String> {
+    API.get_or_init(|| check_version(Api::linked())).as_ref().map_err(Clone::clone)
+}
+
+#[cfg(not(feature = "static-mpv"))]
 pub fn api() -> Result<&'static Api, String> {
     API.get_or_init(|| {
         let mut errors = Vec::new();
@@ -206,18 +241,7 @@ pub fn api() -> Result<&'static Api, String> {
             // SAFETY: loading libmpv runs its initialisers, which have no
             // preconditions beyond being a genuine libmpv build.
             match unsafe { open(&path) } {
-                Ok(lib) => {
-                    let api = unsafe { Api::load(lib) }?;
-                    let v = unsafe { (api.mpv_client_api_version)() };
-                    if v >> 16 != API_MAJOR {
-                        return Err(format!(
-                            "libmpv client API {}.{} is not supported (need {API_MAJOR}.x)",
-                            v >> 16,
-                            v & 0xffff
-                        ));
-                    }
-                    return Ok(api);
-                }
+                Ok(lib) => return check_version(unsafe { Api::load(lib) }?),
                 Err(e) => errors.push(format!("{}: {e}", path.display())),
             }
         }

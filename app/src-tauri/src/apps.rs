@@ -95,22 +95,6 @@ pub fn copy_player_apps(root: &Path) -> io::Result<()> {
     if src != dest {
         copy_atomic(&src, &dest)?;
     }
-    // Windows: libmpv and the DLLs it needs live in `mpv/` next to the exe
-    // (portable zip, installer) and in `.cinasafe/runtime/<platform>/` on a
-    // stick, which keeps the stick's root tidy. The AppImage carries its own.
-    if cfg!(windows) {
-        let runtime = src.parent().map(|d| d.join("mpv")).filter(|d| d.is_dir());
-        if let Some(from) = runtime {
-            let to = root.join(".cinasafe").join("runtime").join(cinasafe_player::ffi::platform_dir());
-            fs::create_dir_all(&to)?;
-            for e in fs::read_dir(&from)? {
-                let e = e?;
-                if e.file_type()?.is_file() {
-                    copy_atomic(&e.path(), &to.join(e.file_name()))?;
-                }
-            }
-        }
-    }
     let mut versions = read_versions(root);
     versions.insert(plat.to_owned(), env!("CARGO_PKG_VERSION").into());
     fs::write(versions_file(root), serde_json::to_vec_pretty(&versions).map_err(io::Error::other)?)?;

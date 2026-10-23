@@ -1,0 +1,8 @@
+[wrap-git]
+url = https://gitlab.freedesktop.org/gstreamer/meson-ports/ffmpeg.git
+# branch meson-8.1 (FFmpeg 8.1.2 with a meson build)
+revision = ff04763ef7cd858605cb118c5626070498f2c49c
+depth = 1
+
+[provide]
+dependency_names = libavcodec, libavdevice, libavfilter, libavformat, libavutil, libswresample, libswscale

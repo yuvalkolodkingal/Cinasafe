@@ -7,6 +7,11 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+# Link libmpv (and FFmpeg, libplacebo, libass, dav1d) into the binary instead of
+# loading it at run time. Release packages use it; see build.rs.
+static-mpv = []
+
 [dependencies]
 cinasafe-core = { path = "../cinasafe-core" }
 libloading = "0.8.9"

@@ -3,12 +3,24 @@
   "bundle": {
     "linux": {
       "deb": {
-        "depends": ["libmpv2"]
+        "depends": [
+          "libva2", "libva-drm2", "libva-x11-2", "libva-wayland2", "libdrm2", "libegl1",
+          "libpulse0", "libasound2", "liblcms2-2", "libfreetype6", "libfribidi0", "libharfbuzz0b",
+          "libfontconfig1", "libxkbcommon0", "libwayland-cursor0", "libwayland-egl1"
+        ]
       },
       "rpm": {
-        "depends": ["libmpv.so.2()(64bit)"],
+        "depends": [
+          "libva.so.2()(64bit)", "libva-drm.so.2()(64bit)", "libva-x11.so.2()(64bit)",
+          "libva-wayland.so.2()(64bit)", "libdrm.so.2()(64bit)", "libEGL.so.1()(64bit)",
+          "libpulse.so.0()(64bit)", "libasound.so.2()(64bit)", "liblcms2.so.2()(64bit)",
+          "libfreetype.so.6()(64bit)", "libfribidi.so.0()(64bit)", "libharfbuzz.so.0()(64bit)",
+          "libfontconfig.so.1()(64bit)", "libxkbcommon.so.0()(64bit)",
+          "libwayland-cursor.so.0()(64bit)", "libwayland-egl.so.1()(64bit)"
+        ],
         "release": "1"
-      }
+      },
+      "appimage": { "bundleMediaFramework": false }
     }
   }
 }
