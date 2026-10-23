@@ -264,7 +264,11 @@ impl Session {
         mpv.register_stream_protocol(Arc::new(VaultOpener(vault.clone())))?;
         mpv.initialize()?;
         let mpv = Arc::new(mpv);
-        let software_gl = video::attach(app, mpv.clone()).map_err(|e| AppError::new("playerUnavailable", e))?;
+        let software_gl = video::attach(app, mpv.clone()).map_err(|e| {
+            // Graphics-driver detail, no vault data: shown in the player and on stderr.
+            eprintln!("cinasafe: video output failed: {e}");
+            AppError::new("videoUnavailable", e)
+        })?;
         if software_gl {
             // Default scaling and HDR shaders are too slow on a software
             // rasteriser and end up drawing nothing (docs/OPEN_QUESTIONS.md Q6).

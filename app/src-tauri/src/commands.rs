@@ -800,7 +800,9 @@ fn open_session(st: &AppState, media_file_id: Id, from_start: bool) -> Result<Pl
 
 #[tauri::command]
 pub async fn player_open(app: AppHandle, media_file_id: Id, from_start: bool) -> Result<PlayerState> {
-    blocking(&app, move |st| open_session(&st, media_file_id, from_start)).await
+    blocking(&app, move |st| open_session(&st, media_file_id, from_start))
+        .await
+        .inspect_err(|e| eprintln!("cinasafe: playback failed: {} ({})", e.code, e.message))
 }
 
 #[tauri::command]

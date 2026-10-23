@@ -450,6 +450,7 @@
     "unauthorized": "The metadata service rejected the API key.",
     "player": "The file couldn't be played.",
     "playerUnavailable": "The player engine (libmpv) isn't available on this computer.",
+    "videoUnavailable": "The video couldn't be shown on this computer's graphics.",
     "formatFailed": "Formatting failed.",
     "formatCancelled": "Formatting was cancelled.",
     "badLabel": "Use 1 to 11 letters, digits, - or _.",
