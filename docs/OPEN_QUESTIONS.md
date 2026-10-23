@@ -100,3 +100,13 @@ complement the portable builds. Notes:
 - `libmpv-2.dll` comes from a third-party build (zhongfly/mpv-winbuild) and is GPL. Pin it
   (`LIBMPV_RELEASE`, `LIBMPV_SHA256` repository variables) before any public release, or
   build it ourselves (`third_party/mpv`).
+
+## Q11. Library schema additions (section 8.1)
+
+`crates/cinasafe-core/src/library/schema.sql` follows the brief's schema, with these additions:
+- `show.tvmaze_id`: shows identified through TVmaze (no TMDB key) need their own id.
+- `show.audio_lang_override` / `subtitle_lang_override`: brief 7.3 asks for per-title
+  overrides on detail pages, and shows have detail pages too.
+- `idx_movie_media`, and the FTS5 table `search_index(kind, ref_id, title)` that brief 8.1
+  mentions without defining.
+`schema_version` stays 1 because no library has been written with an earlier layout.
