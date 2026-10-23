@@ -1,8 +1,9 @@
-//! `cinasafe` CLI. `scan` and `identify` preview what an import would
-//! recognise; the `spike-*` commands drive the Milestone 0 playback spike
-//! against a plaintext-key test vault. Real vault commands come later.
+//! `cinasafe` CLI for testing and scripting (brief 3.1, M1): vault commands,
+//! `scan`/`identify` previews of an import, and the Milestone 0 `spike-*`
+//! commands (plaintext-key test vault, kept for the playback benchmarks).
 
 mod library;
+mod vault_cmds;
 
 use std::io::{self, Read, Seek, SeekFrom};
 use std::path::PathBuf;
@@ -25,6 +26,43 @@ struct Cli {
 #[derive(Subcommand)]
 #[allow(clippy::enum_variant_names)]
 enum Cmd {
+    /// Create a vault in <root>/.cinasafe (asks for a password).
+    Create {
+        root: PathBuf,
+        /// Don't create a recovery key.
+        #[arg(long)]
+        no_recovery: bool,
+    },
+    /// Check the password and show a summary.
+    Unlock { root: PathBuf },
+    /// Encrypt files into the vault (verified after writing).
+    Add {
+        root: PathBuf,
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+    },
+    /// List the files in the vault.
+    Ls { root: PathBuf },
+    /// Write a decrypted file to standard output (`id` from `ls`, or a blob id).
+    Cat { root: PathBuf, id: String },
+    /// Write a decrypted copy to `dest` (a file or a folder).
+    Export {
+        root: PathBuf,
+        id: String,
+        dest: PathBuf,
+        #[arg(long)]
+        force: bool,
+    },
+    /// Change the password (no media is re-encrypted).
+    Passwd { root: PathBuf },
+    /// Replace the recovery key and print the new words, or remove it.
+    Recovery {
+        root: PathBuf,
+        #[arg(long)]
+        remove: bool,
+    },
+    /// Decrypt everything and report corrupt, missing or orphaned files.
+    Verify { root: PathBuf },
     /// Show what importing a folder would recognise: movies, shows, episodes and subtitles. Offline.
     Scan {
         dir: PathBuf,
@@ -176,6 +214,19 @@ fn summary(mut v: Vec<Duration>) -> String {
 
 fn run(cli: Cli) -> Result<(), String> {
     match cli.cmd {
+        Cmd::Create { root, no_recovery } => vault_cmds::create(&root, !no_recovery)?,
+        Cmd::Unlock { root } => vault_cmds::unlock_check(&root)?,
+        Cmd::Add { root, files } => vault_cmds::add(&root, &files)?,
+        Cmd::Ls { root } => vault_cmds::ls(&root)?,
+        Cmd::Cat { root, id } => vault_cmds::cat(&root, &id)?,
+        Cmd::Export { root, id, dest, force } => vault_cmds::export(&root, &id, &dest, force)?,
+        Cmd::Passwd { root } => vault_cmds::passwd(&root)?,
+        Cmd::Recovery { root, remove } => vault_cmds::recovery(&root, remove)?,
+        Cmd::Verify { root } => {
+            if !vault_cmds::verify(&root)? {
+                return Err("integrity check found problems".into());
+            }
+        }
         Cmd::Scan { dir, json } => library::scan(&dir, json)?,
         Cmd::Identify { dir, provider, tmdb_key, language, artwork, json } => {
             library::identify(library::IdentifyArgs { dir: &dir, provider, tmdb_key, language, artwork, json })?

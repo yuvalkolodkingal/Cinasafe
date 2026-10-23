@@ -1,18 +1,21 @@
-//! Cinasafe core: key derivation and the encrypted blob format.
-//!
-//! Milestone 0 scope: only what the playback spike needs (the `.cblob` format,
-//! per-blob key derivation and the streaming reader/writer). The vault header,
-//! password unlock and library live in later milestones.
+//! Cinasafe core: the encrypted vault (keys, `vault.json`, blobs), the
+//! library database, media recognition, subtitles and online metadata.
 
 pub mod blob;
 pub mod crypto;
+pub mod drives;
 pub mod import;
+pub mod library;
 pub mod metadata;
+pub mod secret;
 #[cfg(feature = "spike-insecure-keyfile")]
 pub mod spike;
 pub mod subtitles;
+pub mod vault;
 
 pub use blob::{BlobId, BlobReader, BlobWriteOptions, ChunkSource, Header};
+pub use secret::{Password, SecretKey};
+pub use vault::{RecoveryWords, Vault};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -22,7 +25,7 @@ pub enum Error {
     BadMagic,
     #[error("unsupported blob format version {0}")]
     UnsupportedVersion(u8),
-    #[error("malformed blob header: {0}")]
+    #[error("malformed data: {0}")]
     MalformedHeader(&'static str),
     #[error("blob id in header does not match the requested blob")]
     BlobIdMismatch,
@@ -34,6 +37,30 @@ pub enum Error {
     TooLarge,
     #[error("random number generator failed")]
     Rng,
+    #[error("no Cinasafe vault here")]
+    NotAVault,
+    #[error("a vault already exists here")]
+    VaultExists,
+    #[error("this vault was made by a newer Cinasafe (format {0}); update Cinasafe to open it")]
+    VaultTooNew(u32),
+    #[error("wrong password")]
+    WrongPassword,
+    #[error("wrong recovery key")]
+    WrongRecoveryKey,
+    #[error("this vault has no recovery key")]
+    NoRecoveryKey,
+    #[error("those aren't 24 valid recovery words")]
+    BadRecoveryWords,
+    #[error("a file in the vault is missing")]
+    BlobMissing,
+    #[error("cancelled")]
+    Cancelled,
+    #[error("verification after writing failed; the stick may be faulty")]
+    VerifyFailed,
+    #[error("the library can't be read: {0}")]
+    LibraryUnreadable(String),
+    #[error(transparent)]
+    Library(#[from] library::LibraryError),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

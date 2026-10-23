@@ -1,9 +1,10 @@
 # Cinasafe on-disk format, version 1
 
 This document is the contract for the bytes on the stick. Changing anything here means bumping
-the format version and saying so. Sections 1–2 are implemented in `cinasafe-core`
-(`src/blob.rs`, `src/crypto.rs`) and pinned by test vectors. Section 3 is the brief's
-specification, not implemented yet (Milestone 0 used a plaintext spike key file instead).
+the format version and saying so. Everything below is implemented in `cinasafe-core`
+(`src/blob.rs`, `src/crypto.rs`, `src/vault.rs`, `src/library/`) and pinned by test vectors
+that an independent Python implementation re-checks
+(`crates/cinasafe-core/tests/vectors/verify_vectors.py`).
 
 All multi-byte integers are little-endian unless marked big-endian. `||` is concatenation.
 
@@ -69,12 +70,60 @@ its `.cblob` file. Two independent checks run against them:
 - `python3 -I crates/cinasafe-core/tests/vectors/verify_vectors.py` (Python `cryptography`, no
   Cinasafe code)
 
-## 3. Vault header and keys (brief 4.2–4.3; not implemented yet)
+## 3. Vault header and keys
 
-- KEK from password: Argon2id, m = 262 144 KiB, t = 3, p = 4, 16-byte salt, 32-byte output.
-- Master key: 32 bytes from the OS CSPRNG.
-- Wrap: AES-256-GCM(KEK, master_key), AAD = `"cinasafe-wrap-v1" || vault_id || kind`.
-- Recovery key: 24 BIP39 words (256 bits);
-  KEK = HKDF-SHA256(ikm = entropy, salt = vault_id, info = "cinasafe-recovery-v1").
-- `vault.json` layout as in brief 4.3. Byte-level details (string encoding of `kind` in the AAD,
-  base64 variant) will be pinned here with vectors when the vault milestone implements them.
+### 3.1 Drive layout
+
+```
+<stick root>/
+├── Cinasafe-Windows.exe, Cinasafe-Linux-*.AppImage, run-linux.sh, README.txt
+└── .cinasafe/
+    ├── vault.json            header (below); no titles or user data
+    ├── library.db.enc        encrypted SQLite library (blob format, id = 16 zero bytes)
+    ├── library.db.enc.bak    previous library version
+    └── blobs/ab/cd/<id>.cblob
+```
+
+While a blob is being written it is `<id>.cblob.part`; it is renamed only after every chunk
+has been decrypted back and its plaintext SHA-256 matches what was read from the source.
+
+### 3.2 Keys
+
+| Key | Derivation |
+| --- | --- |
+| Password KEK | Argon2id v1.3, `m = 262144 KiB`, `t = 3`, `p = 4`, 16-byte random salt, 32-byte output. Parameters are stored in `vault.json`. Readers accept `1 ≤ t ≤ 64`, `1 ≤ p ≤ 64`, `8·p ≤ m ≤ 4 GiB` and refuse anything else. |
+| Master key | 32 bytes from the OS CSPRNG, generated once. |
+| Recovery KEK | `HKDF-SHA256(ikm = entropy, salt = vault_id, info = "cinasafe-recovery-v1")`, where `entropy` is the 32 bytes encoded by the 24 BIP39 English words. |
+| Blob key | Section 1. |
+
+### 3.3 Key wraps
+
+`ciphertext = AES-256-GCM(key = KEK, nonce = random 12 bytes, plaintext = master key, AAD = "cinasafe-wrap-v1" || vault_id (16 bytes) || kind)`,
+where `kind` is the ASCII string `password` or `recovery` (no terminator). The 48-byte result
+is the 32-byte ciphertext followed by the 16-byte tag. Changing the password or recovery key
+rewrites only its wrap (and, for the password, the KDF salt and parameters).
+
+### 3.4 `vault.json`
+
+UTF-8 JSON as in brief 4.3. Binary fields are standard base64 with padding. `created_at` is
+RFC 3339 UTC with second precision. `wraps` holds at most one entry per `kind`, `password`
+first. Unknown fields are ignored. A `format` other than `cinasafe-vault` means "not a vault".
+A `version` above 1 means "Update Cinasafe to open this vault", and nothing is opened. Example
+from the vectors: `tests/vectors/password-and-recovery.vault.json`.
+
+### 3.5 Library database
+
+The library is an SQLite database (schema: `crates/cinasafe-core/src/library/schema.sql`,
+`meta.schema_version = 1`), serialised with `sqlite3_serialize` and stored as a blob with the
+reserved id of 16 zero bytes, unpadded, in `library.db.enc`. Saving writes
+`library.db.enc.tmp`, fsyncs it, renames the current file to `library.db.enc.bak`, then
+renames the temp file into place. Unlocking falls back to `.bak` when the main file fails to
+decrypt, and says so. A newer `schema_version` is treated like a newer vault version.
+
+### 3.6 Test vectors
+
+`tests/vectors/vault_vectors.json` lists fixed inputs: password (non-ASCII on purpose),
+master key, vault id, KDF parameters (a cheap `m = 1024 KiB, t = 2, p = 2` so the vectors run
+fast), nonces, recovery entropy and words, plus both expected KEKs. They sit next to the exact
+`vault.json` each produces. The Python check derives the password KEK with libargon2 (the
+reference implementation) and unwraps the master key with both KEKs.
