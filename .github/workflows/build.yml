@@ -118,7 +118,7 @@ jobs:
         run: cargo build --release -p cinasafe-cli
       - name: Check the AppImage carries libmpv and its dependencies
         run: |
-          appimage=$(ls target/release/bundle/appimage/*.AppImage)
+          appimage=$(realpath target/release/bundle/appimage/*.AppImage)
           cd "$(mktemp -d)"
           "$appimage" --appimage-extract >/dev/null
           test -f squashfs-root/usr/lib/libmpv.so.2
