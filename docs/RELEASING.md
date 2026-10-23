@@ -89,5 +89,9 @@ the x86_64 build under emulation.
    `app/ui/package.json`.
 3. Regenerate the licence list: `python3 scripts/third-party-licenses.py`.
 4. Tag and push: `git tag -s v0.2.0 -m "Cinasafe 0.2.0" && git push origin v0.2.0`.
+   Or, without pushing a tag: run the **Build packages** workflow by hand on `main`
+   (Actions → Build packages → Run workflow) with `release_tag` set to `v0.2.0`. The
+   release job then creates the tag on the commit it built. Either way the tag must match
+   the workspace version, or the release job fails.
 5. The release is created as a **pre-release**. Check the stick kit on a real stick on
    Windows and Linux, then mark it as a full release.
