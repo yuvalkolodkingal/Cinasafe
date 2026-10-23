@@ -6,6 +6,7 @@ mod apps;
 mod commands;
 mod dto;
 mod error;
+mod hardening;
 mod img;
 mod player;
 mod settings;
@@ -52,7 +53,28 @@ fn redirect_caches(dir: &Path) {
     }
 }
 
+/// Logout, shutdown and Ctrl-C end the app the normal way, so the vault is
+/// locked and the session dir deleted (RunEvent::Exit).
+#[cfg(unix)]
+fn exit_on_signals(app: tauri::AppHandle) {
+    use signal_hook::consts::{SIGHUP, SIGINT, SIGTERM};
+    match signal_hook::iterator::Signals::new([SIGTERM, SIGINT, SIGHUP]) {
+        Ok(mut signals) => {
+            std::thread::spawn(move || {
+                if signals.forever().next().is_some() {
+                    app.exit(0);
+                }
+            });
+        }
+        Err(e) => eprintln!("cinasafe: no signal handling: {e}"),
+    }
+}
+
+#[cfg(not(unix))]
+fn exit_on_signals(_: tauri::AppHandle) {}
+
 fn main() {
+    hardening::no_crash_dumps();
     let session = match session_dir() {
         Ok(d) => d,
         Err(e) => {
@@ -118,6 +140,7 @@ fn main() {
             let state = AppState::new(app.handle().clone());
             app.manage(state.clone());
             state.start_watchers();
+            exit_on_signals(app.handle().clone());
             let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
                 .title("Cinasafe")
                 .inner_size(1280.0, 800.0)
@@ -125,6 +148,12 @@ fn main() {
                 .transparent(true)
                 .incognito(true)
                 .data_directory(webview_dir.clone())
+                // WebView2 only. Keeps Tauri's defaults and adds: no autofill
+                // or translation services, no background network traffic.
+                .additional_browser_args(
+                    "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,AutofillServerCommunication,msEdgeTranslate \
+                     --disable-background-networking --disable-sync --no-first-run",
+                )
                 .build()?;
             if let Err(e) = video::setup(&window) {
                 // The library still works; playback will report the problem.

@@ -180,7 +180,7 @@ export function Wizard({ onDone }: { onDone: (addNow: boolean) => void }) {
                     {(id) => <input id={id} value={confirmName} dir="auto" autoComplete="off" spellCheck={false} onChange={(e) => setConfirmName(e.target.value)} />}
                   </Field>
                   <Field label={t('wizard.volumeLabel')} error={/^[A-Za-z0-9_-]{1,11}$/.test(label) ? null : t('errors.badLabel')}>
-                    {(id) => <input id={id} value={label} dir="ltr" maxLength={11} onChange={(e) => setLabel(e.target.value.toUpperCase())} />}
+                    {(id) => <input spellCheck={false} autoComplete="off" id={id} value={label} dir="ltr" maxLength={11} onChange={(e) => setLabel(e.target.value.toUpperCase())} />}
                   </Field>
                 </div>
               )}
@@ -221,11 +221,11 @@ export function Wizard({ onDone }: { onDone: (addNow: boolean) => void }) {
                   }}
                 >
                   <Field label={t('wizard.password')} hint={pw.length > 0 && pw.length < 8 ? t('wizard.minLength') : undefined}>
-                    {(id) => <input id={id} type="password" dir="ltr" autoComplete="new-password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} />}
+                    {(id) => <input spellCheck={false} autoComplete="off" id={id} type="password" dir="ltr" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} />}
                   </Field>
                   <StrengthMeter score={strength} />
                   <Field label={t('wizard.confirm')}>
-                    {(id) => <input id={id} type="password" dir="ltr" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} />}
+                    {(id) => <input spellCheck={false} autoComplete="off" id={id} type="password" dir="ltr" value={pw2} onChange={(e) => setPw2(e.target.value)} />}
                   </Field>
                   {pw2 && (
                     <p className={`match ${pw === pw2 ? 'tone-good' : 'tone-bad'}`}>

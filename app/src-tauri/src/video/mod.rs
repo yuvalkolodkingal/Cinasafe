@@ -24,8 +24,8 @@ mod other {
     pub fn prepare(_: &Mpv) -> Result<(), cinasafe_player::Error> {
         Err(cinasafe_player::Error::Library("video output is not supported on this platform yet".into()))
     }
-    pub fn attach(_: &AppHandle, _: Arc<Mpv>) -> Result<(), String> {
-        Ok(())
+    pub fn attach(_: &AppHandle, _: Arc<Mpv>) -> Result<bool, String> {
+        Ok(false)
     }
     pub fn detach(_: &AppHandle) {}
 }

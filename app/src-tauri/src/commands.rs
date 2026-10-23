@@ -30,6 +30,29 @@ const MIN_PASSWORD_CHARS: usize = 8;
 
 // ---------- vault ----------
 
+/// Removable drives. Debug builds can add a folder posing as an exFAT stick
+/// (`CINASAFE_TEST_DRIVE=<dir>`), to test the wizard without hardware.
+fn removable_drives() -> std::result::Result<Vec<Drive>, drives::DriveError> {
+    #[allow(unused_mut)]
+    let mut list =
+        drives::list_removable().or_else(|e| if cfg!(debug_assertions) { Ok(Vec::new()) } else { Err(e) })?;
+    #[cfg(debug_assertions)]
+    if let Some(dir) = std::env::var_os("CINASAFE_TEST_DRIVE").map(PathBuf::from) {
+        list.push(Drive {
+            id: "test-drive".into(),
+            name: "Test stick".into(),
+            label: Some("TESTSTICK".into()),
+            size_bytes: 32_000_000_000,
+            free_bytes: drives::free_space(&dir).ok(),
+            filesystem: Some("exfat".into()),
+            has_vault: Vault::detect(&dir).is_some(),
+            mount_path: Some(dir),
+            status: drives::DriveStatus::Ready,
+        });
+    }
+    Ok(list)
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VaultSummary {
@@ -92,7 +115,7 @@ fn summarize(root: &Path, drives: &[Drive]) -> Option<VaultSummary> {
 #[tauri::command]
 pub async fn vault_detect(app: AppHandle) -> Result<Option<VaultSummary>> {
     blocking(&app, |st| {
-        let drives = drives::list_removable().unwrap_or_default();
+        let drives = removable_drives().unwrap_or_default();
         let known = st.root.lock().unwrap().clone();
         let roots = known
             .into_iter()
@@ -121,7 +144,7 @@ pub async fn vault_status(state: St<'_>) -> Result<Status> {
 
 #[tauri::command]
 pub async fn drives_list(app: AppHandle) -> Result<Vec<Drive>> {
-    blocking(&app, |_| Ok(drives::list_removable()?)).await
+    blocking(&app, |_| Ok(removable_drives()?)).await
 }
 
 #[derive(Serialize)]
@@ -189,7 +212,7 @@ pub async fn vault_info(app: AppHandle) -> Result<VaultInfo> {
         let (movie_count, movie_bytes, show_count, show_bytes) = v.library().totals()?;
         let used = v.used_bytes()?;
         let free = drives::free_space(v.root()).ok();
-        let size = drives::list_removable()
+        let size = removable_drives()
             .unwrap_or_default()
             .into_iter()
             .find(|d| d.mount_path.as_deref() == Some(v.root()))
@@ -314,7 +337,7 @@ pub async fn vault_create(
     let emitter = app.clone();
     blocking(&app, move |st| {
         check_new_password(&password)?;
-        let drive = drives::list_removable()?
+        let drive = removable_drives()?
             .into_iter()
             .find(|d| d.id == drive_id)
             .ok_or_else(|| AppError::new("notFound", "that drive is gone"))?;
@@ -751,7 +774,7 @@ pub async fn storage(app: AppHandle) -> Result<Storage> {
         let v = st.vault()?;
         let used = v.used_bytes()?;
         let free = drives::free_space(v.root()).ok();
-        let size = drives::list_removable()
+        let size = removable_drives()
             .unwrap_or_default()
             .into_iter()
             .find(|d| d.mount_path.as_deref() == Some(v.root()))
@@ -859,8 +882,10 @@ pub async fn app_info(app: AppHandle) -> Result<AppInfo> {
 pub async fn update_player_apps(app: AppHandle) -> Result<()> {
     blocking(&app, |st| {
         let root = st.vault()?.root().to_path_buf();
-        crate::apps::copy_player_apps(&root)?;
-        Ok(())
+        crate::apps::copy_player_apps(&root).map_err(|e| match e.kind() {
+            std::io::ErrorKind::Unsupported => AppError::new("notPortable", e.to_string()),
+            _ => e.into(),
+        })
     })
     .await
 }

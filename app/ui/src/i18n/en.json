@@ -69,7 +69,8 @@
     "recoveryLabel": "Recovery key (24 words)",
     "recoveryHint": "Type or paste the 24 words, separated by spaces.",
     "language": "Language",
-    "footer": "Nothing is decrypted to this computer's disk. Pulling the stick locks the vault.",
+    "footerDisk": "Nothing is decrypted to this computer's disk.",
+    "footerRemove": "Pulling the stick locks the vault.",
     "drivePill": "{{label}} · {{size}} · {{used}} used",
     "unnamedDrive": "Cinasafe stick",
     "tooNewTitle": "Update Cinasafe to open this vault",
@@ -454,6 +455,7 @@
     "badLabel": "Use 1 to 11 letters, digits, - or _.",
     "weakPassword": "Use at least 8 characters.",
     "io": "The stick couldn't be read or written.",
+    "notPortable": "This copy of Cinasafe is installed on the computer, not portable. To put the player on the stick, start the AppImage or the Windows app instead.",
     "internal": "Something went wrong."
   },
   "languages": {

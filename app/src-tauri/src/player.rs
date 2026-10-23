@@ -230,6 +230,11 @@ impl Session {
         let resume = if from_start || progress.watched { 0.0 } else { progress.position_ms as f64 / 1000.0 };
 
         let mut mpv = Mpv::new()?;
+        // Debugging only: mpv's log on stderr. Off by default (logs may name tracks).
+        if std::env::var_os("CINASAFE_MPV_LOG").is_some() {
+            mpv.set_option("terminal", "yes")?;
+            mpv.set_option("msg-level", "all=v")?;
+        }
         for (k, v) in [("keep-open", "yes"), ("idle", "yes"), ("hwdec", if s.hwdec { "auto-safe" } else { "no" })] {
             mpv.set_option(k, v)?;
         }
@@ -242,15 +247,29 @@ impl Session {
         let _ = mpv.set_option("sub-scale", &s.subtitle_scale.to_string());
         let _ = mpv.set_option("sub-pos", &s.subtitle_pos.to_string());
         let _ = mpv.set_option("sub-color", &s.subtitle_color);
+        // Each line's base direction from its own text (brief 7.2): Hebrew and
+        // Arabic lines keep their final punctuation and embedded Latin words in
+        // the right place without the "Fix RTL punctuation" rewrite
+        // (docs/OPEN_QUESTIONS.md Q3).
+        let mut overrides = vec!["Encoding=-1"];
         if s.subtitle_background {
-            let _ = mpv.set_option("sub-border-style", "opaque-box");
             let _ = mpv.set_option("sub-back-color", "#99000000");
+            // mpv 0.38+; older libmpv (e.g. Ubuntu's 0.37) gets libass's opaque box instead.
+            if mpv.set_option("sub-border-style", "background-box").is_err() {
+                overrides.extend(["BorderStyle=3", "OutlineColour=&H66000000"]);
+            }
         }
+        let _ = mpv.set_option("sub-ass-style-overrides", &overrides.join(","));
         video::prepare(&mpv)?;
         mpv.register_stream_protocol(Arc::new(VaultOpener(vault.clone())))?;
         mpv.initialize()?;
         let mpv = Arc::new(mpv);
-        video::attach(app, mpv.clone()).map_err(|e| AppError::new("playerUnavailable", e))?;
+        let software_gl = video::attach(app, mpv.clone()).map_err(|e| AppError::new("playerUnavailable", e))?;
+        if software_gl {
+            // Default scaling and HDR shaders are too slow on a software
+            // rasteriser and end up drawing nothing (docs/OPEN_QUESTIONS.md Q6).
+            let _ = mpv.command(&["apply-profile", "fast"]);
+        }
 
         let prefs = |over: Option<String>, list: &[String]| -> Vec<String> {
             over.into_iter().chain(list.iter().cloned()).map(|l| lang_key(&l)).collect()

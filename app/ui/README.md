@@ -14,7 +14,8 @@ Outside Tauri, every command goes to `src/api/mock.ts`, which has sample
 movies and shows (Hebrew titles included), an import queue and a player
 that ticks. URL switches: `?locked=1` (Unlock), `?wizard=1` (no vault:
 create-vault wizard), `?empty=1` (empty library), `?tooNew=1`, `?slow=1`
-(slow-stick notice), `?pos=<seconds>` (player start), `?lang=en|he|ar`.
+(slow-stick notice), `?pos=<seconds>` (player start), `?lang=en|he|ar`,
+`?freeze=1` (player and import queue stand still, for screenshot tests).
 For example `http://localhost:1420/?lang=he#/show/1`.
 
 ## The contract
@@ -32,7 +33,15 @@ i18n key `errors.<code>`. Artwork comes from the `cinasafe-img` protocol via
 npm run typecheck
 npm test           # i18n key parity, no physical left/right in CSS, formatting, mock covers the contract
 npm run build
+npm run e2e        # screenshots of every screen in he/ar (and some en) vs e2e/__screenshots__
 ```
+
+`npm run e2e` builds, serves `dist` with `vite preview` and compares each
+screen against its baseline, with the mock frozen (`?freeze=1`) and the clock
+fixed. After an intended UI change, run `npm run e2e:update` and look at the
+new images before committing them. `@playwright/test` is pinned to 1.56.1
+because its Chromium (revision 1194) is the one preinstalled here; in CI,
+`npx playwright install --with-deps chromium` fetches the same build.
 
 ## Rules
 

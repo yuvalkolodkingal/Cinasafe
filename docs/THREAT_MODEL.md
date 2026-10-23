@@ -69,13 +69,30 @@ file name) and optional year go to TMDB or TVmaze over HTTPS. Artwork is
 downloaded into memory, checked by magic bytes, resized and encrypted. The
 webview never loads remote URLs (CSP: `img-src 'self' data: cinasafe-img:`).
 
+## Crashes
+
+A crash must not leave a dump of a process that held keys or decrypted data.
+
+- **Linux:** `RLIMIT_CORE` is set to 1 at start. That stops core files, and stops piped
+  handlers such as systemd-coredump, because the kernel skips the pipe at exactly 1. WebKit's
+  child processes inherit the limit. `PR_SET_DUMPABLE=0` also stops other processes of the
+  same user from attaching a debugger.
+- **Windows:** an unhandled exception (in our code or in libmpv) or a panic terminates the
+  process at once, before Windows Error Reporting can take a dump. The WER dialog is turned
+  off too. WebView2's own processes are outside our control.
+
+## Tested
+
+`scripts/disk-trace.sh` runs in CI on every push. It does a full session under fatrace:
+create, import, play, verify, and then the desktop app (unlock, resume playback, lock, quit
+on SIGTERM). The test media carry a random marker in their names, metadata and subtitles. The
+check fails if the marker appears in any file written outside the stick, or if the app leaves
+its session dir behind. A self-test plants a leak to prove the check can fail.
+
 ## Still open
 
-- External security review of the format and core (milestone 6). Needs people outside the project.
-- Disk-trace test in CI (brief 13): run unlock, import, play and lock under
-  `fanotify` and fail on any write outside the stick and the session dir.
-- Windows: verify that WebView2, the file dialogs and the GPU driver leave
-  nothing behind. This needs a real Windows 11 machine.
-- Crash dumps: Windows Error Reporting may write a dump of the process, which
-  could contain decrypted data. Opting out per process (`WerAddExcludedApplication`)
-  needs testing.
+- External security review of the format and core (milestone 6). Needs people outside the
+  project.
+- Windows: verify that WebView2, the file dialogs and the GPU driver leave nothing behind
+  (a Process Monitor trace on a real Windows 11 machine), and whether the common file
+  dialog records its last folder in the registry.

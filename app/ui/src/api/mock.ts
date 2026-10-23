@@ -37,6 +37,8 @@ import type {
 
 const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
 const flag = (k: string) => params.get(k) === '1';
+/** `?freeze=1`: the player and import queue don't tick (screenshot tests). */
+const frozen = flag('freeze');
 
 // ---------- events ----------
 
@@ -447,6 +449,7 @@ function openPlayer(mediaFileId: Id, fromStart: boolean): PlayerState {
   const pos = params.get('pos');
   if (pos) player.position = Number(pos);
   if (playerTimer) clearInterval(playerTimer);
+  if (frozen) return player;
   playerTimer = setInterval(() => {
     if (!player || player.paused) return;
     player.position = Math.min(player.duration ?? 0, player.position + 0.5 * player.speed);
@@ -912,7 +915,7 @@ function lastOf(w: WatchItem): string {
   return (w.kind === 'movie' ? w.movie.progress.lastWatchedAt : w.episode.progress.lastWatchedAt) ?? '';
 }
 
-if (typeof window !== 'undefined') setInterval(tickImport, 500);
+if (typeof window !== 'undefined' && !frozen) setInterval(tickImport, 500);
 
 export const mockBackend = {
   invoke: async <T>(cmd: string, args: Record<string, unknown> = {}): Promise<T> => {

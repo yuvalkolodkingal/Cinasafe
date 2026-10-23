@@ -12,9 +12,10 @@ use std::process::ExitCode;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use cinasafe_core::library::Library;
 use cinasafe_core::spike::SpikeVault;
 use cinasafe_core::{BlobId, BlobWriteOptions, ChunkSource};
-use cinasafe_player::{Event, MediaStream, Mpv, StreamOpener};
+use cinasafe_player::{Event, MediaStream, Mpv, StreamOpener, VaultOpener};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -82,6 +83,19 @@ enum Cmd {
         /// Don't read duration and tracks with libmpv.
         #[arg(long)]
         no_probe: bool,
+    },
+    /// Play a file from the vault headless through libmpv (testing): its imported subtitle
+    /// is added, the resume position is saved afterwards.
+    Play {
+        root: PathBuf,
+        /// Media file id from `ls`.
+        id: i64,
+        #[arg(long, default_value_t = 10.0)]
+        seconds: f64,
+        #[arg(long, default_value_t = 3)]
+        seeks: u32,
+        #[arg(long, default_value = "null")]
+        vo: String,
     },
     /// Show what importing a folder would recognise: movies, shows, episodes and subtitles. Offline.
     Scan {
@@ -313,6 +327,21 @@ fn run(cli: Cli) -> Result<(), String> {
             }
             println!("random 64 KiB read after seek: {}", summary(lat));
         }
+        Cmd::Play { root, id, seconds, seeks, vo } => {
+            let vault = Arc::new(vault_cmds::unlock(&root)?);
+            let (blob, sub) = {
+                let lib = vault.library();
+                let f = lib.media_file(id).map_err(|_| format!("no file with id {id}"))?;
+                let sub = lib.subtitles(id).map_err(|e| e.to_string())?.first().map(Library::subtitle_blob_to_play);
+                (f.blob_id, sub)
+            };
+            let mut mpv = Mpv::new().map_err(|e| e.to_string())?;
+            mpv.set_option("vo", &vo).map_err(|e| e.to_string())?;
+            mpv.register_stream_protocol(Arc::new(VaultOpener(vault.clone()))).map_err(|e| e.to_string())?;
+            let position = play(mpv, blob, sub, seconds, seeks).map_err(|e| e.to_string())?;
+            vault.library().record_position(id, (position * 1000.0) as i64, None).map_err(|e| e.to_string())?;
+            vault.save_library().map_err(|e| e.to_string())?;
+        }
         Cmd::SpikePlay {
             root,
             blob,
@@ -352,7 +381,14 @@ fn run(cli: Cli) -> Result<(), String> {
     Ok(())
 }
 
-fn play(mpv: Mpv, id: BlobId, sub: Option<BlobId>, seconds: f64, seeks: u32) -> Result<(), Box<dyn std::error::Error>> {
+/// Plays headless and reports timings; returns the position when it stopped.
+fn play(
+    mpv: Mpv,
+    id: BlobId,
+    sub: Option<BlobId>,
+    seconds: f64,
+    seeks: u32,
+) -> Result<f64, Box<dyn std::error::Error>> {
     mpv.set_option("ao", "null")?;
     mpv.set_option("idle", "yes")?;
     mpv.set_option("keep-open", "always")?;
@@ -446,7 +482,7 @@ fn play(mpv: Mpv, id: BlobId, sub: Option<BlobId>, seconds: f64, seeks: u32) -> 
     for t in &sub_texts {
         println!("subtitle seen: {t}");
     }
-    Ok(())
+    Ok(mpv.get_f64("time-pos").unwrap_or(0.0))
 }
 
 fn main() -> ExitCode {

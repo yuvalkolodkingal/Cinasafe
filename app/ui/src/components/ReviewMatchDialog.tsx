@@ -84,7 +84,7 @@ export function ReviewMatchDialog({ item, onClose, onResolved }: { item: QueueIt
           void run('search', async () => setCandidates(await api.metadataSearch(kind, query.trim(), guessYear ? Number(guessYear) : null)));
         }}
       >
-        <Field label={t('review.searchLabel')}>{(id) => <input id={id} value={query} dir="auto" onChange={(e) => setQuery(e.target.value)} />}</Field>
+        <Field label={t('review.searchLabel')}>{(id) => <input spellCheck={false} autoComplete="off" id={id} value={query} dir="auto" onChange={(e) => setQuery(e.target.value)} />}</Field>
         <Button type="submit" icon="search" busy={busy === 'search'} disabled={!query.trim() || busy != null}>
           {t('review.searchAgain')}
         </Button>
@@ -103,9 +103,9 @@ export function ReviewMatchDialog({ item, onClose, onResolved }: { item: QueueIt
           });
         }}
       >
-        <Field label={t('edit.titleField')}>{(id) => <input id={id} value={title} dir="auto" onChange={(e) => setTitle(e.target.value)} />}</Field>
+        <Field label={t('edit.titleField')}>{(id) => <input spellCheck={false} autoComplete="off" id={id} value={title} dir="auto" onChange={(e) => setTitle(e.target.value)} />}</Field>
         <Field label={t('edit.year')}>
-          {(id) => <input id={id} className="year-input" inputMode="numeric" dir="ltr" value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
+          {(id) => <input spellCheck={false} autoComplete="off" id={id} className="year-input" inputMode="numeric" dir="ltr" value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
         </Field>
         <Button type="submit" busy={busy === 'manual'} disabled={!title.trim() || busy != null}>
           {t('review.useManual')}

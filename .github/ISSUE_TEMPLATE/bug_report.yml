@@ -1,0 +1,70 @@
+name: Bug report
+description: Something doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please **don't** include titles, file names or paths from your
+        vault, and never your password or recovery words. For security problems, use
+        **Security › Report a vulnerability** instead of an issue.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Unlock the vault
+        2. Open a show
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Cinasafe version
+      description: Settings › About shows it.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Computer
+      options:
+        - Windows 11 (x64)
+        - Windows 11 (ARM64)
+        - Windows 10
+        - Linux x86_64 (X11)
+        - Linux x86_64 (Wayland)
+        - Linux aarch64
+        - Other (say below)
+    validations:
+      required: true
+  - type: dropdown
+    id: how
+    attributes:
+      label: How do you run it?
+      options:
+        - From the stick (Cinasafe-Windows.exe / AppImage / run-linux.sh)
+        - Installed (.exe installer, .deb or .rpm)
+        - Built from source
+  - type: dropdown
+    id: language
+    attributes:
+      label: Interface language
+      options:
+        - English
+        - Hebrew
+        - Arabic
+  - type: textarea
+    id: details
+    attributes:
+      label: Anything else
+      description: Distribution and version, GPU, the stick's make and size, screenshots (blur anything private).

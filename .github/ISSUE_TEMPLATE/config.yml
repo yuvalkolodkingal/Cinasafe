@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/yuvalkolodkingal/cinasafe/security/advisories/new
+    about: Please report security problems privately, not as public issues (see SECURITY.md).
+  - name: Help translate Cinasafe
+    url: https://github.com/yuvalkolodkingal/cinasafe/blob/main/docs/TRANSLATING.md
+    about: How the English, Hebrew and Arabic strings are maintained.

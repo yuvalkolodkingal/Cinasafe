@@ -167,7 +167,11 @@ export function Unlock({
         </div>
         <p className="unlock-footer">
           <Icon name="shield" size={16} />
-          <span>{t('unlock.footer')}</span>
+          {/* One sentence per line: the wrap doesn't depend on exact text widths. */}
+          <span>
+            <span className="unlock-footer-line">{t('unlock.footerDisk')}</span>
+            <span className="unlock-footer-line">{t('unlock.footerRemove')}</span>
+          </span>
         </p>
       </div>
     </div>
