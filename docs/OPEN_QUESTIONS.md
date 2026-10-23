@@ -110,3 +110,39 @@ complement the portable builds. Notes:
 - `idx_movie_media`, and the FTS5 table `search_index(kind, ref_id, title)` that brief 8.1
   mentions without defining.
 `schema_version` stays 1 because no library has been written with an earlier layout.
+
+## Q12. Online lookups default and keys (brief 15)
+
+**Taken:** off by default. Add media has a checkbox, bound to Settings › Privacy. When on,
+shows use TVmaze without a key, and TMDB is used for movies and shows once the user enters
+their own key in Settings (see Q9). The checkbox explains that parsed titles are sent to the
+provider.
+
+## Q13. Decisions made while building the import queue and player (M2–M4)
+
+- **Subtitles at import:** converted to UTF-8 and encrypted. "Fix RTL punctuation" is
+  *offered* (the queue notes it), not applied. The fixed copy is made the first time the
+  user ticks the box in the player, and the original is kept (brief 7.2).
+- **Default subtitle track:** the first preferred language that matches. With no preference
+  set, the first imported subtitle file (the user brought it on purpose); otherwise Off.
+- **Subtitle timing** is remembered per imported subtitle file. Embedded tracks' offsets
+  last only for the session, because the schema has no place for them. Proposal: a
+  `media_file.sub_delay_ms` column in schema v2.
+- **Artwork** is re-encoded as JPEG (quality 85) at 500/1280/400 px (poster, backdrop, still).
+- **Progress** is saved every 10 s of playback; each save rewrites the encrypted library on
+  the stick. Pulling the stick loses at most 10 s.
+- **Idle lock** doesn't fire while a video is playing (paused playback counts as idle).
+- **Removing a title** forgets it in the library first, then deletes the blobs, so an
+  interruption leaves orphans (the integrity check reports them), never dangling references.
+
+## Q14. Layout of the player apps on the stick (brief 4.1)
+
+- Windows needs `libmpv-2.dll` next to `Cinasafe-Windows.exe`, so the stick root also has
+  that DLL. Brief 4.1 shows only the exe.
+- `.cinasafe/apps.json` records which app version was copied for each platform, so
+  Settings › Vault can show it. It is plaintext but says nothing about the library.
+- **Eject:** Linux unmounts through UDisks2 and powers the drive off. Windows doesn't call
+  an eject API yet; locking already flushed every write, so pulling the stick is safe once
+  locked.
+- An app killed by the OS (not closed) leaves its temp session dir until the next start,
+  which deletes it.

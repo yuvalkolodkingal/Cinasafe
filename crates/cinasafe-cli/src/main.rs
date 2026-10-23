@@ -2,6 +2,7 @@
 //! `scan`/`identify` previews of an import, and the Milestone 0 `spike-*`
 //! commands (plaintext-key test vault, kept for the playback benchmarks).
 
+mod import_cmd;
 mod library;
 mod vault_cmds;
 
@@ -63,6 +64,25 @@ enum Cmd {
     },
     /// Decrypt everything and report corrupt, missing or orphaned files.
     Verify { root: PathBuf },
+    /// Import files or folders: recognise, encrypt, verify and file them into the library.
+    Import {
+        root: PathBuf,
+        #[arg(required = true)]
+        paths: Vec<PathBuf>,
+        /// Look titles up online (sends parsed titles to the provider).
+        #[arg(long)]
+        online: bool,
+        #[arg(long, value_enum, default_value_t = library::ProviderChoice::Auto)]
+        provider: library::ProviderChoice,
+        /// TMDB v3 API key or v4 read access token. Prefer the environment variable.
+        #[arg(long, env = "CINASAFE_TMDB_KEY", hide_env_values = true)]
+        tmdb_key: Option<String>,
+        #[arg(long, default_value = "en-US")]
+        language: String,
+        /// Don't read duration and tracks with libmpv.
+        #[arg(long)]
+        no_probe: bool,
+    },
     /// Show what importing a folder would recognise: movies, shows, episodes and subtitles. Offline.
     Scan {
         dir: PathBuf,
@@ -225,6 +245,12 @@ fn run(cli: Cli) -> Result<(), String> {
         Cmd::Verify { root } => {
             if !vault_cmds::verify(&root)? {
                 return Err("integrity check found problems".into());
+            }
+        }
+        Cmd::Import { root, paths, online, provider, tmdb_key, language, no_probe } => {
+            let args = import_cmd::ImportArgs { root, paths, online, provider, tmdb_key, language, probe: !no_probe };
+            if !import_cmd::import(args)? {
+                return Err("some files failed to import".into());
             }
         }
         Cmd::Scan { dir, json } => library::scan(&dir, json)?,

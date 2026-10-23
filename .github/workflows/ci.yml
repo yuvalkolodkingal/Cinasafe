@@ -27,6 +27,14 @@ jobs:
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      # The app embeds the built UI, so it's built before any cargo step.
+      - name: UI tests and build
+        working-directory: app/ui
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+          npm run build
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
@@ -41,4 +49,9 @@ jobs:
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal && rustup default stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: UI build
+        working-directory: app/ui
+        run: |
+          npm ci
+          npm run build
       - run: cargo test --workspace

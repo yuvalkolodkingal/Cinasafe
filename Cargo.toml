@@ -5,8 +5,9 @@ members = [
     "crates/cinasafe-player",
     "crates/cinasafe-cli",
     "spike/tauri-embed",
+    "app/src-tauri",
 ]
-# The Tauri spike pulls in WebKitGTK/WebView2; build it explicitly with `-p tauri-embed-spike`.
+# The Tauri crates pull in WebKitGTK/WebView2; build them explicitly (`-p cinasafe-app`).
 default-members = [
     "crates/cinasafe-core",
     "crates/cinasafe-player",

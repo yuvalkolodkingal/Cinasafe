@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"The main window: core events and window control only. Dialogs are opened from Rust.","local":true,"windows":["main"],"permissions":["core:default","core:window:allow-set-fullscreen"]}}

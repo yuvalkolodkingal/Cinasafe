@@ -102,6 +102,13 @@ pub fn format_exfat(drive: &Drive, label: &str) -> Result<PathBuf, DriveError> {
     imp::format_exfat(drive, label)
 }
 
+/// Unmounts the volume mounted at `mount` and powers its drive off, so it
+/// can be pulled safely. Linux only; on Windows the vault's writes are
+/// already flushed (every save is fsynced) and this does nothing.
+pub fn eject(mount: &Path) -> Result<(), DriveError> {
+    imp::eject(mount)
+}
+
 /// Calls `on_removed` once when `vault_root/.cinasafe` stops being reachable.
 pub struct RemovalWatch {
     stop: Arc<AtomicBool>,
@@ -297,6 +304,31 @@ mod imp {
         HashMap::new()
     }
 
+    pub fn eject(mount: &Path) -> Result<(), DriveError> {
+        let conn = connect()?;
+        let objs = objects(&conn)?;
+        let (path, drive) = objs
+            .iter()
+            .find_map(|(k, ifaces)| {
+                let fs = ifaces.get("org.freedesktop.UDisks2.Filesystem")?;
+                let block = ifaces.get("org.freedesktop.UDisks2.Block")?;
+                mount_points(fs).iter().any(|m| m == mount).then(|| (k.to_string(), object_path(block, "Drive")))
+            })
+            .ok_or_else(|| DriveError::Unavailable("not a mounted removable volume".into()))?;
+        let fail = |e: zbus::Error| DriveError::Unavailable(e.to_string());
+        Proxy::new(&conn, DEST, path.as_str(), "org.freedesktop.UDisks2.Filesystem")
+            .map_err(fail)?
+            .call_method("Unmount", &(opts(),))
+            .map_err(fail)?;
+        if let Some(d) = drive {
+            // Not every drive can be powered off; unmounted is enough to pull it.
+            if let Ok(p) = Proxy::new(&conn, DEST, d.as_str(), "org.freedesktop.UDisks2.Drive") {
+                let _ = p.call_method("PowerOff", &(opts(),));
+            }
+        }
+        Ok(())
+    }
+
     pub fn format_exfat(drive: &Drive, label: &str) -> Result<PathBuf, DriveError> {
         let conn = connect()?;
         let objs = objects(&conn)?;
@@ -439,6 +471,10 @@ mod imp {
         Ok(out)
     }
 
+    pub fn eject(_: &Path) -> Result<(), DriveError> {
+        Ok(())
+    }
+
     pub fn format_exfat(drive: &Drive, label: &str) -> Result<PathBuf, DriveError> {
         // Only "X:" ever reaches the command line.
         let b = drive.id.as_bytes();
@@ -491,6 +527,10 @@ mod imp {
 
     pub fn format_exfat(_: &Drive, _: &str) -> Result<PathBuf, DriveError> {
         Err(DriveError::Unavailable("not supported on this platform".into()))
+    }
+
+    pub fn eject(_: &Path) -> Result<(), DriveError> {
+        Ok(())
     }
 }
 
