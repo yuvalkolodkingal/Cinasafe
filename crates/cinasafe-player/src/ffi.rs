@@ -21,6 +21,7 @@ pub const MPV_FORMAT_FLAG: c_int = 3;
 pub const MPV_FORMAT_INT64: c_int = 4;
 pub const MPV_FORMAT_DOUBLE: c_int = 5;
 
+pub const MPV_ERROR_OPTION_NOT_FOUND: c_int = -5;
 pub const MPV_ERROR_LOADING_FAILED: c_int = -13;
 pub const MPV_ERROR_UNSUPPORTED: i64 = -18;
 pub const MPV_ERROR_GENERIC: i64 = -20;
@@ -149,17 +150,51 @@ const LIB_NAMES: &[&str] = &["libmpv.so.2", "libmpv.so"];
 /// Client API major version this wrapper is written against (mpv 0.35+).
 const API_MAJOR: u64 = 2;
 
+/// `windows-x86_64`, `linux-aarch64`, ...: names the per-platform runtime folder on a stick.
+pub fn platform_dir() -> String {
+    let os = std::env::consts::OS;
+    let arch = match std::env::consts::ARCH {
+        "aarch64" if os == "windows" => "arm64",
+        other => other,
+    };
+    format!("{os}-{arch}")
+}
+
+/// Where libmpv may be, most specific first:
+/// - `CINASAFE_LIBMPV_DIR`;
+/// - next to the executable, and in its `mpv/` folder (portable zip, installer);
+/// - `.cinasafe/runtime/<platform>/` beside the executable (the app on a stick);
+/// - `../lib` from the executable (inside the AppImage);
+/// - the system search path.
 fn candidates() -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    if let Ok(dir) = std::env::var("CINASAFE_LIBMPV_DIR") {
-        out.extend(LIB_NAMES.iter().map(|n| PathBuf::from(&dir).join(n)));
+    let mut dirs = Vec::new();
+    if let Some(dir) = std::env::var_os("CINASAFE_LIBMPV_DIR") {
+        dirs.push(PathBuf::from(dir));
     }
-    if let Some(dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(PathBuf::from)) {
-        out.extend(LIB_NAMES.iter().map(|n| dir.join(n)));
+    if let Some(exe_dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(PathBuf::from)) {
+        dirs.push(exe_dir.join("mpv"));
+        dirs.push(exe_dir.join(".cinasafe").join("runtime").join(platform_dir()));
+        dirs.push(exe_dir.join("..").join("lib"));
+        dirs.push(exe_dir);
     }
-    // Bare names go through the platform search path (LD_LIBRARY_PATH in the AppImage).
+    let mut out: Vec<PathBuf> =
+        dirs.iter().flat_map(|d| LIB_NAMES.iter().map(move |n| d.join(n))).filter(|p| p.is_file()).collect();
+    // Bare names go through the platform search path.
     out.extend(LIB_NAMES.iter().map(PathBuf::from));
     out
+}
+
+/// Loads a library. On Windows, a full path also makes Windows look for the
+/// DLLs it needs in its own folder (FFmpeg, libass, ... sit next to libmpv).
+unsafe fn open(path: &std::path::Path) -> Result<Library, libloading::Error> {
+    #[cfg(windows)]
+    {
+        use libloading::os::windows::{Library as WinLibrary, LOAD_WITH_ALTERED_SEARCH_PATH};
+        if path.is_absolute() {
+            return unsafe { WinLibrary::load_with_flags(path, LOAD_WITH_ALTERED_SEARCH_PATH) }.map(Library::from);
+        }
+    }
+    unsafe { Library::new(path) }
 }
 
 static API: OnceLock<Result<Api, String>> = OnceLock::new();
@@ -170,7 +205,7 @@ pub fn api() -> Result<&'static Api, String> {
         for path in candidates() {
             // SAFETY: loading libmpv runs its initialisers, which have no
             // preconditions beyond being a genuine libmpv build.
-            match unsafe { Library::new(&path) } {
+            match unsafe { open(&path) } {
                 Ok(lib) => {
                     let api = unsafe { Api::load(lib) }?;
                     let v = unsafe { (api.mpv_client_api_version)() };

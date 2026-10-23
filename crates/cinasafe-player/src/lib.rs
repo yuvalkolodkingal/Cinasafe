@@ -55,6 +55,11 @@ pub const SAFE_OPTIONS: &[(&str, &str)] = &[
     ("log-file", ""),
 ];
 
+/// Options from [`SAFE_OPTIONS`] that only turn a feature off. A libmpv built
+/// without that feature (e.g. without Lua, so no youtube-dl hook, scripts or
+/// on-screen controller) doesn't know the option, which is just as safe.
+const ABSENT_IS_SAFE: &[&str] = &["ytdl", "load-scripts", "osc"];
+
 /// mpv properties of interest, in a form that owns its data.
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyValue {
@@ -104,7 +109,11 @@ impl Mpv {
         }
         let mpv = Mpv { api, handle, streams: None };
         for (k, v) in SAFE_OPTIONS {
-            mpv.set_option(k, v)?;
+            match mpv.set_option(k, v) {
+                // The feature this option would switch off isn't in this build.
+                Err(Error::Mpv { code: ffi::MPV_ERROR_OPTION_NOT_FOUND, .. }) if ABSENT_IS_SAFE.contains(k) => {}
+                other => other?,
+            }
         }
         Ok(mpv)
     }
