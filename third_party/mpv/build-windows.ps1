@@ -208,13 +208,22 @@ if (-not $m.Success) { throw "mpv.exe's link line not found in build.ninja" }
 $inputs = ($m.Groups[1].Value -replace '\$\s*\n', ' ') -split '\s+' | Where-Object { $_ }
 $linkArgs = ($m.Groups[2].Value) -split '\s+' | Where-Object { $_ }
 $lines = New-Object System.Collections.Generic.List[string]
+# Meson writes subprojects' internal libraries as thin archives (references to
+# object files), which link.exe can't read; llvm-lib copies each one as a
+# regular archive.
+function Copy-Archive([string]$From, [string]$To) {
+    llvm-lib /nologo "/out:$To" $From
+}
+Copy-Archive (Join-Path $build "libmpv.a") (Join-Path $Out "libmpv.a")
 $lines.Add("static=libmpv.a")
-Copy-Item (Join-Path $build "libmpv.a") $Out
 $taken = @{ "libmpv.a" = $true }
+$seen = @{ ([IO.Path]::GetFullPath((Join-Path $build "libmpv.a"))) = $true }
 foreach ($tok in @($inputs + $linkArgs)) {
     $t = $tok.Trim('"') -replace '^\|+', ''
     if ($t -match '\.(a|lib)$' -and (Test-Path (Join-Path $build $t))) {
-        if ($t -match '(^|[\\/])libmpv\.a$') { continue }
+        $full = [IO.Path]::GetFullPath((Join-Path $build $t))
+        if ($seen.ContainsKey($full)) { continue }
+        $seen[$full] = $true
         $name = Split-Path -Leaf $t
         if ($taken.ContainsKey($name)) {
             $i = 2
@@ -222,7 +231,7 @@ foreach ($tok in @($inputs + $linkArgs)) {
             $name = "$i-$name"
         }
         $taken[$name] = $true
-        Copy-Item (Join-Path $build $t) (Join-Path $Out $name)
+        Copy-Archive $full (Join-Path $Out $name)
         $lines.Add("static=$name")
     } elseif ($t -match '^-l(.+)$') {
         $lines.Add("dylib=$($Matches[1])")
