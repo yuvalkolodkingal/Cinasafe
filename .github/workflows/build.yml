@@ -19,9 +19,11 @@ on:
 permissions:
   contents: read
 
+# A newer push waits for a running build instead of cancelling it: these
+# builds (libmpv especially) are slow to restart. Older queued runs are dropped.
 concurrency:
   group: build-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   CARGO_TERM_COLOR: always
