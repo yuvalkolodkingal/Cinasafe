@@ -1,0 +1,38 @@
+[
+  {
+    "name": "password-only",
+    "password": "correct horse battery staple — סיסמה",
+    "master_key": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f",
+    "vault_id": "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+    "kdf_m_kib": 1024,
+    "kdf_t": 2,
+    "kdf_p": 2,
+    "kdf_salt": "202122232425262728292a2b2c2d2e2f",
+    "password_nonce": "606162636465666768696a6b",
+    "password_kek": "dbda1eddecbec243a766c303a66f7e8d2228ddfd6a74cc732f49e44582f21cd7",
+    "recovery_entropy": null,
+    "recovery_words": null,
+    "recovery_nonce": null,
+    "recovery_kek": null,
+    "created_at": "2026-10-22T14:00:00Z",
+    "file": "password-only.vault.json"
+  },
+  {
+    "name": "password-and-recovery",
+    "password": "correct horse battery staple — סיסמה",
+    "master_key": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f",
+    "vault_id": "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+    "kdf_m_kib": 1024,
+    "kdf_t": 2,
+    "kdf_p": 2,
+    "kdf_salt": "202122232425262728292a2b2c2d2e2f",
+    "password_nonce": "606162636465666768696a6b",
+    "password_kek": "dbda1eddecbec243a766c303a66f7e8d2228ddfd6a74cc732f49e44582f21cd7",
+    "recovery_entropy": "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f",
+    "recovery_words": "letter army path animal flash duck captain course merit good glove busy animal sing exact naive notable rubber chapter cry right excite kidney utility",
+    "recovery_nonce": "707172737475767778797a7b",
+    "recovery_kek": "9833c429d56e84d85884ad68318e2c2d7ea70d970d7bb9d498d945c2c12b8efa",
+    "created_at": "2026-10-22T14:00:00Z",
+    "file": "password-and-recovery.vault.json"
+  }
+]

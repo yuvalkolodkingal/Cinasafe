@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Independent check of the .cblob test vectors (docs/FORMAT.md section 4).
+"""Independent check of the format test vectors (docs/FORMAT.md).
 
-Re-derives each blob key with HKDF-SHA256 and decrypts every chunk with
-AES-256-GCM using the Python `cryptography` package, without any Cinasafe code.
+Blobs: re-derives each blob key with HKDF-SHA256 and decrypts every chunk with
+AES-256-GCM. vault.json: re-derives the password KEK with the reference
+Argon2 (libargon2 via `argon2-cffi`) and the recovery KEK with HKDF, then
+unwraps the master key. Uses Python `cryptography`, no Cinasafe code.
 
     python3 -I crates/cinasafe-core/tests/vectors/verify_vectors.py
 """
@@ -48,11 +50,48 @@ def check(v):
     assert out.hex() == v["plaintext"], "plaintext"
 
 
+def check_vault(v):
+    import base64
+
+    from argon2.low_level import Type, hash_secret_raw
+
+    f = json.loads((HERE / v["file"]).read_text())
+    assert f["format"] == "cinasafe-vault" and f["version"] == 1, "format/version"
+    vault_id = base64.b64decode(f["vault_id"])
+    assert vault_id.hex() == v["vault_id"], "vault id"
+    kdf = f["kdf"]
+    assert (kdf["alg"], kdf["m_kib"], kdf["t"], kdf["p"]) == ("argon2id", v["kdf_m_kib"], v["kdf_t"], v["kdf_p"])
+    salt = base64.b64decode(kdf["salt"])
+    kek = hash_secret_raw(
+        v["password"].encode(), salt, time_cost=kdf["t"], memory_cost=kdf["m_kib"],
+        parallelism=kdf["p"], hash_len=32, type=Type.ID, version=19,
+    )
+    assert kek.hex() == v["password_kek"], "password KEK"
+    wraps = {w["kind"]: w for w in f["wraps"]}
+
+    def unwrap(kind, kek):
+        w = wraps[kind]
+        aad = b"cinasafe-wrap-v1" + vault_id + kind.encode()
+        return AESGCM(kek).decrypt(base64.b64decode(w["nonce"]), base64.b64decode(w["ciphertext"]), aad)
+
+    assert unwrap("password", kek).hex() == v["master_key"], "password unwrap"
+    if v["recovery_entropy"]:
+        entropy = bytes.fromhex(v["recovery_entropy"])
+        rkek = HKDF(hashes.SHA256(), 32, vault_id, b"cinasafe-recovery-v1").derive(entropy)
+        assert rkek.hex() == v["recovery_kek"], "recovery KEK"
+        assert unwrap("recovery", rkek).hex() == v["master_key"], "recovery unwrap"
+        assert len(v["recovery_words"].split()) == 24, "24 words"
+    else:
+        assert "recovery" not in wraps, "unexpected recovery wrap"
+
+
 def main():
-    vectors = json.loads((HERE / "blob_vectors.json").read_text())
-    for v in vectors:
+    for v in json.loads((HERE / "blob_vectors.json").read_text()):
         check(v)
-        print(f"ok  {v['name']}")
+        print(f"ok  blob   {v['name']}")
+    for v in json.loads((HERE / "vault_vectors.json").read_text()):
+        check_vault(v)
+        print(f"ok  vault  {v['name']}")
     return 0
 
 
