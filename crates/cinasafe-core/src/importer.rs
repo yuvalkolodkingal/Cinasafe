@@ -184,6 +184,14 @@ struct State {
     done: HashMap<u64, Done>,
 }
 
+/// The whole queue, for a UI that just opened.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportStatusItems {
+    pub items: Vec<QueueItem>,
+    pub paused: bool,
+}
+
 pub type VaultGetter = Arc<dyn Fn() -> Option<Arc<Vault>> + Send + Sync>;
 pub type ItemListener = Arc<dyn Fn(&QueueItem) + Send + Sync>;
 
@@ -265,6 +273,11 @@ impl Importer {
 
     pub fn items(&self) -> Vec<QueueItem> {
         self.inner.state.lock().unwrap().items.clone()
+    }
+
+    pub fn status(&self) -> ImportStatusItems {
+        let st = self.inner.state.lock().unwrap();
+        ImportStatusItems { items: st.items.clone(), paused: st.paused }
     }
 
     pub fn is_paused(&self) -> bool {
@@ -452,6 +465,25 @@ impl Importer {
     pub fn clear_finished(&self) {
         let mut st = self.inner.state.lock().unwrap();
         st.items.retain(|i| !i.state.is_finished() || i.match_state == MatchState::NeedsReview);
+    }
+
+    /// Forgets everything (on lock): no titles or file names stay in memory.
+    /// Call after `cancel(None)` and `wait_idle()`.
+    pub fn clear_all(&self) {
+        let mut st = self.inner.state.lock().unwrap();
+        st.items.clear();
+        st.pending.clear();
+        st.done.clear();
+        st.shows.clear();
+        st.cancelled.clear();
+        st.paused = false;
+    }
+
+    /// Bytes the waiting and running imports will still add to the stick.
+    pub fn queued_bytes(&self) -> u64 {
+        let st = self.inner.state.lock().unwrap();
+        let running = st.items.iter().filter(|i| Some(i.id) == st.active).map(|i| padded(i.size_bytes)).sum::<u64>();
+        running + st.pending.iter().map(|u| padded(u.size)).sum::<u64>()
     }
 
     /// Blocks until nothing is waiting or running (CLI and tests).

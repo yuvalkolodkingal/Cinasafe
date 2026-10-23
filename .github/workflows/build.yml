@@ -19,8 +19,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  # The Tauri app to package. Switch to app/src-tauri when the real shell lands.
-  APP_DIR: spike/tauri-embed
+  APP_DIR: app/src-tauri
   TAURI_CLI_VERSION: 2.12.4
 
 jobs:
@@ -37,6 +36,8 @@ jobs:
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal && rustup default stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install UI dependencies
+        run: npm ci --prefix app/ui
       - name: Build .deb and .rpm
         working-directory: ${{ env.APP_DIR }}
         run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" build --bundles deb,rpm
@@ -91,6 +92,8 @@ jobs:
           7z e $archive.FullName "-o$dir" libmpv-2.dll -r -y
           if (-not (Test-Path "$dir/libmpv-2.dll")) { throw "libmpv-2.dll not found in $($archive.Name)" }
           "$($archive.Name) $hash" | Out-File -Encoding utf8 "$dir/SOURCE.txt"
+      - name: Install UI dependencies
+        run: npm ci --prefix app/ui
       - name: Build installer
         working-directory: ${{ env.APP_DIR }}
         # The extra config adds libmpv-2.dll to the installer. It lives in its own file because

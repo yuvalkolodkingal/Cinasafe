@@ -48,6 +48,7 @@ pub enum ArtKind {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ArtworkRef {
     pub kind: ArtKind,
     pub url: String,
@@ -57,6 +58,7 @@ pub struct ArtworkRef {
 
 /// A search hit, before details are fetched.
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Candidate {
     pub provider: &'static str,
     pub id: String,
