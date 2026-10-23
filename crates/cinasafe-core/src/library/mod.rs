@@ -275,6 +275,18 @@ impl Library {
             .ok_or(LibraryError::NotFound)
     }
 
+    /// A media file with this original name and size (import de-duplication).
+    pub fn find_media(&self, original_name: &str, size_bytes: u64) -> Result<Option<Id>> {
+        Ok(self
+            .conn
+            .query_row(
+                "SELECT id FROM media_file WHERE original_name = ?1 AND size_bytes = ?2",
+                params![original_name, size_bytes as i64],
+                |r| r.get(0),
+            )
+            .optional()?)
+    }
+
     pub fn set_media_info(
         &mut self,
         id: Id,
@@ -513,6 +525,30 @@ impl Library {
         }
         self.changed();
         Ok(id)
+    }
+
+    pub fn set_episode_thumb(&mut self, id: Id, thumb: Id) -> Result<()> {
+        self.conn.execute("UPDATE episode SET thumb_id = ?2 WHERE id = ?1", params![id, thumb])?;
+        self.changed();
+        Ok(())
+    }
+
+    pub fn set_season(&mut self, id: Id, title: Option<&str>, poster: Option<Id>) -> Result<()> {
+        self.conn.execute(
+            "UPDATE season SET title = COALESCE(?2, title), poster_id = COALESCE(?3, poster_id) WHERE id = ?1",
+            params![id, title, poster],
+        )?;
+        self.changed();
+        Ok(())
+    }
+
+    /// Largest episode number used in a season (0 when empty).
+    pub fn max_episode_number(&self, season_id: Id) -> Result<u32> {
+        Ok(self.conn.query_row(
+            "SELECT COALESCE(MAX(number), 0) FROM episode WHERE season_id = ?1",
+            [season_id],
+            |r| r.get(0),
+        )?)
     }
 
     pub fn update_episode(&mut self, id: Id, e: &EpisodeMeta) -> Result<()> {

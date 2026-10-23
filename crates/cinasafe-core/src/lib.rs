@@ -5,6 +5,7 @@ pub mod blob;
 pub mod crypto;
 pub mod drives;
 pub mod import;
+pub mod importer;
 pub mod library;
 pub mod metadata;
 pub mod secret;
@@ -61,6 +62,10 @@ pub enum Error {
     LibraryUnreadable(String),
     #[error(transparent)]
     Library(#[from] library::LibraryError),
+    #[error(transparent)]
+    Metadata(#[from] metadata::Error),
+    #[error("{0}")]
+    Import(&'static str),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
