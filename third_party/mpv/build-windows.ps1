@@ -209,10 +209,22 @@ $inputs = ($m.Groups[1].Value -replace '\$\s*\n', ' ') -split '\s+' | Where-Obje
 $linkArgs = ($m.Groups[2].Value) -split '\s+' | Where-Object { $_ }
 $lines = New-Object System.Collections.Generic.List[string]
 # Meson writes subprojects' internal libraries as thin archives (references to
-# object files), which link.exe can't read; llvm-lib copies each one as a
-# regular archive.
+# object files), which link.exe can't read. Those are rebuilt as regular
+# archives from the objects they name; regular ones are copied as they are.
+# (llvm-lib can convert them too, but crashed on SPIRV-Tools.)
 function Copy-Archive([string]$From, [string]$To) {
-    llvm-lib /nologo "/out:$To" $From
+    $head = [System.Text.Encoding]::ASCII.GetString([byte[]](Get-Content -AsByteStream -TotalCount 8 $From))
+    if ($head -ne "!<thin>`n") {
+        Copy-Item $From $To
+        return
+    }
+    # llvm-ar lists a thin archive's members relative to the current directory.
+    $cwd = (Get-Location).Path
+    $rsp = "$To.rsp"
+    llvm-ar t $From | ForEach-Object { '"' + [IO.Path]::GetFullPath($_, $cwd) + '"' } | Set-Content -Path $rsp
+    Remove-Item -ErrorAction SilentlyContinue $To
+    llvm-ar qcs $To "@$rsp"
+    Remove-Item $rsp
 }
 Copy-Archive (Join-Path $build "libmpv.a") (Join-Path $Out "libmpv.a")
 $lines.Add("static=libmpv.a")
