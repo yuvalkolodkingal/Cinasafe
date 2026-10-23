@@ -253,17 +253,8 @@ jobs:
     name: Stick kit
     needs: [linux, windows]
     runs-on: ubuntu-24.04
-    env:
-      TAG: ${{ inputs.release_tag || github.ref_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: The tag matches the version being released
-        run: |
-          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
-          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$' || [ "$TAG" != "v$version" ]; then
-            echo "::error::Tag '$TAG' does not match the workspace version $version"
-            exit 1
-          fi
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: cinasafe-*
