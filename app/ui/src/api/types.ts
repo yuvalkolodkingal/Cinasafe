@@ -37,6 +37,8 @@ export type ErrorCode =
   | 'formatCancelled'
   | 'badLabel'
   | 'weakPassword'
+  /** Update player apps from an installed (non-portable) copy. */
+  | 'notPortable'
   | 'io'
   | 'internal';
 

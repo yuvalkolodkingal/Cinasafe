@@ -454,6 +454,7 @@
     "badLabel": "Use 1 to 11 letters, digits, - or _.",
     "weakPassword": "Use at least 8 characters.",
     "io": "The stick couldn't be read or written.",
+    "notPortable": "This copy of Cinasafe is installed on the computer, not portable. To put the player on the stick, start the AppImage or the Windows app instead.",
     "internal": "Something went wrong."
   },
   "languages": {
