@@ -15,24 +15,25 @@ The brief originally said GPL-3.0-or-later; the owner chose **Apache-2.0**, whic
 already contained. `docs/BRIEF.md`, every crate's `license` field and the package metadata now
 say Apache-2.0.
 
-**Consequence for libmpv (open):** the app loads libmpv at runtime, but the Windows packages
-ship `libmpv-2.dll` next to it. The third-party build CI downloads today (zhongfly/mpv-winbuild)
-enables GPL parts of mpv and FFmpeg. Shipping that DLL makes the bundle as a whole subject to
-the GPL, and its source must be offered. To keep releases cleanly Apache-2.0:
-- build libmpv ourselves in its LGPL configuration (mpv `-Dgpl=false`, FFmpeg without
-  `--enable-gpl`/`--enable-nonfree`), as `third_party/mpv` is meant to (brief 3.1, 12), and
-- ship the LGPL licence texts and a source offer for the DLL.
-LGPL builds lose a few GPL-only filters and encoders that playback doesn't need. Until that
-exists, treat CI's Windows artifacts as test builds, not releases. Linux packages use the
-distribution's libmpv, so the distribution handles it.
+**Consequence for libmpv (resolved):** the app loads libmpv at runtime. Shipping a GPL
+libmpv would make the bundle subject to the GPL, so builds now ship our own **LGPL** libmpv:
+mpv `-Dgpl=false`, and FFmpeg without `--enable-gpl` or `--enable-nonfree`
+(`third_party/mpv/build-*.sh`). The scripts refuse to finish with a GPL configuration. Each
+release attaches the exact sources and lists every bundled component in
+`THIRD_PARTY_LICENSES.md` (`docs/RELEASING.md`). The third-party GPL `libmpv-2.dll` CI used
+before is gone. The `.deb` and `.rpm` use the distribution's libmpv, under the
+distribution's licensing.
 
-## Q3. Subtitle base direction (section 7.2)
+## Q3. Subtitle base direction (section 7.2) (resolved)
 
-libass lays out lines left-to-right unless the style says otherwise, so correctly written
-Hebrew/Arabic lines show their final punctuation on the wrong side (`docs/SPIKE.md` §4).
-**Proposal:** always set `sub-ass-style-overrides=Encoding=-1` (per-line auto direction). Then
-the "Fix RTL punctuation" rewrite only has to move leading punctuation to the end; the RLE…PDF
-wrap stays as specified and is harmless. Not yet decided; nothing in the app depends on it.
+libass lays out lines left-to-right unless the style says otherwise. Correctly written
+Hebrew and Arabic lines then show their final punctuation and embedded Latin words on the
+wrong side (`docs/SPIKE.md` §4; screenshots from the M4 tests). **Taken:** the player always
+sets `sub-ass-style-overrides=Encoding=-1`, so each line's base direction comes from its own
+text. Checked in the app with libmpv 0.37 and 0.41: a Windows-1255 Hebrew SRT and an Arabic
+ASS, mixed Hebrew/English and Arabic/English lines included, render correctly. "Fix RTL
+punctuation" stays for files written for players that got this wrong: it moves leading
+punctuation to the end and wraps the line in RLE…PDF, as specified.
 
 ## Q4. Traces on the host from the web engine and GPU driver (answered by brief 10)
 
@@ -53,11 +54,12 @@ any GL init. The spike shows the Linux variant leaves nothing behind.
   lists font files only, but it is still a trace. Covered by the Q4 redirect if we set
   `XDG_CACHE_HOME` for the process.
 
-## Q6. Software GL renderers
+## Q6. Software GL renderers (resolved)
 
-With no GPU (or a broken driver), mpv's default quality settings were unusable on llvmpipe
-(black video, ~160 ms per frame). **Proposal:** when mpv reports a software renderer, switch to
-`profile=fast` automatically.
+With no GPU, or a broken driver, mpv's default rendering on llvmpipe drew a black picture
+(subtitles showed, video didn't). **Taken:** when the GL renderer is a software rasteriser
+(llvmpipe, softpipe, SwiftShader, ...), the player applies mpv's `fast` profile. Checked under
+Xvfb with llvmpipe: video renders.
 
 ## Q7. Native display handle for hwdec on Wayland
 
@@ -88,18 +90,18 @@ and the Windows installer were added on request; they install Cinasafe on a comp
 complement the portable builds. Notes:
 
 - The `.deb` depends on `libmpv2` (Debian 12+, Ubuntu 23.04+). **Ubuntu 22.04 and Mint 21
-  only have libmpv1** (client API 1.x, unsupported). For those, libmpv has to be bundled,
-  which is what the AppImage is for (not built yet: libmpv is loaded at runtime, so
-  `linuxdeploy` won't pick it up automatically; it needs an explicit bundling recipe).
+  only have libmpv1** (client API 1.x, unsupported); they use the AppImage, which carries our
+  LGPL libmpv. The libmpv is added to the AppDir explicitly, and linuxdeploy bundles what it
+  needs.
 - The `.rpm` requires the soname `libmpv.so.2()(64bit)`, which Fedora (`mpv-libs`) and
   openSUSE (`libmpv2`) both provide.
 - Windows builds are **unsigned**, so SmartScreen will warn. Code signing needs a certificate
-  (decision and cost for the owner).
-- Only x86_64 is built so far. ARM64 Windows and aarch64 Linux need ARM runners, or cross
-  builds plus an ARM64 libmpv.
-- `libmpv-2.dll` comes from a third-party build (zhongfly/mpv-winbuild) and is GPL. Pin it
-  (`LIBMPV_RELEASE`, `LIBMPV_SHA256` repository variables) before any public release, or
-  build it ourselves (`third_party/mpv`).
+  (decision and cost for the owner; `docs/RELEASING.md`).
+- **ARM:** the workflow builds linux-aarch64 and windows-arm64 on GitHub's ARM runners, but
+  those are free only for public repositories. They run once the repository variable
+  `ENABLE_ARM_RUNNERS` is `true` (owner's decision). Until then, Windows on ARM runs the
+  x86_64 build under emulation.
+- libmpv is our own LGPL build (Q2).
 
 ## Q11. Library schema additions (section 8.1)
 
@@ -137,12 +139,15 @@ provider.
 
 ## Q14. Layout of the player apps on the stick (brief 4.1)
 
-- Windows needs `libmpv-2.dll` next to `Cinasafe-Windows.exe`, so the stick root also has
-  that DLL. Brief 4.1 shows only the exe.
+- Windows needs `libmpv-2.dll` and about thirty DLLs it depends on. To keep the stick's root
+  as brief 4.1 shows it, they live in `.cinasafe/runtime/windows-<arch>/`. The exe looks
+  there, and in `mpv\` next to itself for the portable zip and the installer
+  (`docs/RELEASING.md`). Everything in `runtime/` is public binaries, not vault data.
+- The AppImage carries its own libmpv, so Linux needs nothing extra on the stick.
 - `.cinasafe/apps.json` records which app version was copied for each platform, so
   Settings › Vault can show it. It is plaintext but says nothing about the library.
 - **Eject:** Linux unmounts through UDisks2 and powers the drive off. Windows doesn't call
   an eject API yet; locking already flushed every write, so pulling the stick is safe once
   locked.
 - An app killed by the OS (not closed) leaves its temp session dir until the next start,
-  which deletes it.
+  which deletes it. SIGTERM, SIGINT and SIGHUP (logout, shutdown, Ctrl-C) close it properly.
