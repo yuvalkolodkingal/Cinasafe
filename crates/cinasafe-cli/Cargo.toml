@@ -11,6 +11,10 @@ repository.workspace = true
 name = "cinasafe"
 path = "src/main.rs"
 
+[features]
+# libmpv compiled into the binary (release packages); see crates/cinasafe-player.
+static-mpv = ["cinasafe-player/static-mpv"]
+
 [dependencies]
 cinasafe-core = { path = "../cinasafe-core", features = ["spike-insecure-keyfile"] }
 cinasafe-player = { path = "../cinasafe-player" }

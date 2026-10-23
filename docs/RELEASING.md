@@ -7,34 +7,36 @@ packages as workflow artifacts. Pushing a tag `v*` publishes them as a pre-relea
 
 | File | What |
 | --- | --- |
-| `Cinasafe-stick-kit.zip` | Everything for a stick's root (brief 4.1): `Cinasafe-Windows.exe`, `Cinasafe-Linux-x86_64.AppImage`, `run-linux.sh`, `README.txt`, and Windows' libmpv in `.cinasafe/runtime/windows-x86_64/`. Unzip onto an exFAT stick, run the app from it, and the create-vault wizard does the rest. |
-| `Cinasafe-Linux-<arch>.AppImage` | Runs from anywhere and carries its own libmpv. |
-| `cinasafe_<version>_amd64.deb`, `cinasafe-<version>-1.x86_64.rpm` | Install on a computer; use the distribution's libmpv. |
+| `Cinasafe-stick-kit.zip` | Everything for a stick's root (brief 4.1): `Cinasafe-Windows.exe`, `Cinasafe-Linux-x86_64.AppImage`, `run-linux.sh`, `README.txt`, and the licences in `.cinasafe/runtime/`. Unzip onto an exFAT stick, run the app from it, and the create-vault wizard does the rest. |
+| `Cinasafe-Windows-<arch>.exe` | The portable Windows app: one file, libmpv compiled in, nothing to install. Needs only the WebView2 runtime that Windows 11 and updated Windows 10 have. |
+| `Cinasafe-Linux-<arch>.AppImage` | The portable Linux app: one file, libmpv compiled in. |
+| `cinasafe_<version>_amd64.deb`, `cinasafe-<version>-1.x86_64.rpm` | Install on a computer; libmpv is compiled in. |
 | `Cinasafe_<version>_x64-setup.exe` | Windows installer (current user, no admin). |
-| `Cinasafe-Windows-<arch>-portable.zip` | The exe, the CLI and `mpv\`. |
-| `cinasafe-cli-linux-<arch>.tar.gz` | The `cinasafe` command-line tool. |
-| `libmpv-sources-*.tar.gz` | The exact FFmpeg, mpv (and on Linux libplacebo, dav1d) sources of the bundled libmpv: the LGPL source offer. |
+| `cinasafe-cli-linux-<arch>.tar.gz`, `cinasafe-cli-windows-<arch>.exe` | The `cinasafe` command-line tool. |
+| `libmpv-sources-*.tar.gz` | The exact sources of mpv, FFmpeg and the other libraries compiled into the app: the LGPL source offer. |
 | `THIRD_PARTY_LICENSES.md` | Every bundled component and its licence. |
 | `SHA256SUMS.txt`, `SHA256SUMS.txt.minisig` | Checksums of all of the above, and their signature. |
 
 ## libmpv
 
-`third_party/mpv/build-linux.sh` and `build-windows.sh` build libmpv from pinned
-commits as **LGPL**: mpv with `-Dgpl=false`, FFmpeg without `--enable-gpl` or
-`--enable-nonfree`. Both scripts stop if either ends up GPL. CI caches the result
-keyed on the script, so bumping a version in the script rebuilds it (about 15
-minutes on Linux, longer on Windows).
+libmpv is compiled into the app: the package jobs build with the cargo feature
+`static-mpv`, which links static mpv, FFmpeg, libplacebo, libass and dav1d into
+the binary (`crates/cinasafe-player/build.rs`). No package carries or looks for
+a libmpv file. CI checks this: the Linux job fails if `cinasafe-app` links any
+of them dynamically, and the Windows job fails if the exe needs a DLL that
+isn't part of Windows.
 
-Each build's `SOURCES.txt` lists the exact commits and, on Windows, the MSYS2
-package versions of the other DLLs. The `.deb` and `.rpm` use the
-distribution's libmpv; that's the distribution's licensing.
+`third_party/mpv/build-linux.sh` and `build-windows.ps1` build those libraries
+from pinned sources as **LGPL**: mpv with `-Dgpl=false`, FFmpeg without `gpl`,
+`version3` or `nonfree`. Both scripts stop if either ends up GPL or anything
+links a GPL-only library. CI caches the result keyed on the scripts (and
+Windows' wrap files), so changing a version rebuilds it: about 15 minutes on
+Linux, and longer on Windows, which builds every dependency from source.
+Each build's `SOURCES.txt` lists the exact commits.
 
-The app looks for libmpv in this order:
-1. `CINASAFE_LIBMPV_DIR`;
-2. `mpv/` next to the executable;
-3. `.cinasafe/runtime/<platform>/` next to it, which is the stick layout;
-4. `../lib` from the executable, which is inside the AppImage;
-5. the system search path.
+Development builds without the feature load the system's libmpv at run time,
+looking in `CINASAFE_LIBMPV_DIR`, then next to the executable, then on the
+system search path.
 
 ## Signing
 

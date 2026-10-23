@@ -24,9 +24,10 @@ used: Apache-2.0, MIT, BSD-3-Clause, BSD-2-Clause, ISC, Zlib, Unicode-3.0, MPL-2
 
 ## Native libraries and fonts
 
-Shipped in the packages: libmpv and its libraries next to the Windows app and inside
-the AppImages; the fonts in the app's resources and the UI bundle. Linux `.deb` and
-`.rpm` packages use the distribution's libmpv instead.
+Compiled into the app (`cinasafe-app`, and the `cinasafe` CLI) in every package: libmpv
+and the libraries below it. On Linux, FreeType, FriBidi, HarfBuzz and fontconfig come
+from the system (the AppImage bundles them); on Windows they are compiled in too. Also
+shipped: the fonts in the app's resources and the UI bundle.
 
 | Component | Licence | Notes |
 | --- | --- | --- |
@@ -38,14 +39,20 @@ the AppImages; the fonts in the app's resources and the UI bundle. Linux `.deb` 
 | HarfBuzz | MIT ("Old MIT") | https://github.com/harfbuzz/harfbuzz |
 | FreeType | FTL | dual-licensed FTL or GPL-2.0; used under the FTL; https://freetype.org/ |
 | dav1d | BSD-2-Clause | https://code.videolan.org/videolan/dav1d |
+| zlib | Zlib | Windows build; https://zlib.net/ |
+| shaderc | Apache-2.0 | Windows build (Direct3D 11 shaders); https://github.com/google/shaderc |
+| glslang | BSD-3-Clause | Windows build, via shaderc; also BSD-2-Clause, MIT and Apache-2.0 parts, and a Bison grammar under GPL-3.0 with the Bison exception, which permits this use; https://github.com/KhronosGroup/glslang |
+| SPIRV-Tools | Apache-2.0 | Windows build, via shaderc; https://github.com/KhronosGroup/SPIRV-Tools |
+| SPIRV-Headers | MIT | Windows build; https://github.com/KhronosGroup/SPIRV-Headers |
+| SPIRV-Cross | Apache-2.0 | Windows build; https://github.com/KhronosGroup/SPIRV-Cross |
 | Rubik (UI font) | OFL-1.1 | https://github.com/googlefonts/rubik |
 | Noto Sans, Noto Sans Hebrew, Noto Sans Arabic (UI and subtitle fonts) | OFL-1.1 | https://notofonts.github.io/ |
 
-The LGPL libraries are loaded dynamically and can be replaced with your own builds
-of the same libraries. Each release attaches their exact source code
-(`libmpv-sources-*.tar.gz`); the scripts that build them are in
-[`third_party/mpv`](third_party/mpv), and each build's `SOURCES.txt` lists the commits
-and, on Windows, the MSYS2 package versions of the other DLLs.
+The LGPL libraries are linked statically. As LGPL-2.1 section 6 requires, you can
+relink the app against modified versions of them: its complete source is public, and
+the scripts that build the libraries are in [`third_party/mpv`](third_party/mpv).
+Each release attaches their exact source code (`libmpv-sources-*.tar.gz`), and each
+build's `SOURCES.txt` lists the commits.
 
 ## Rust crates (448)
 

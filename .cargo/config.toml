@@ -1,0 +1,8 @@
+# Windows: link the C runtime statically too, so the exe runs from a stick on
+# any Windows 10/11 without the Visual C++ redistributable, and so it matches
+# the static runtime (/MT) the static libmpv is built with.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

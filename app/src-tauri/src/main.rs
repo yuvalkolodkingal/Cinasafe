@@ -53,6 +53,39 @@ fn redirect_caches(dir: &Path) {
     }
 }
 
+/// Windows without the WebView2 runtime (some Windows 10 editions) can still
+/// run the app from a stick that carries Microsoft's fixed-version runtime in
+/// `.cinasafe/runtime/webview2-<arch>/` (or `webview2-<arch>/`) next to the
+/// exe. An installed runtime is preferred: it gets security updates.
+#[cfg(windows)]
+fn use_carried_webview2() {
+    if std::env::var_os("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER").is_some() {
+        return;
+    }
+    let installed = ["ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"].iter().any(|var| {
+        std::env::var_os(var)
+            .map(|base| PathBuf::from(base).join("Microsoft").join("EdgeWebView").join("Application"))
+            .and_then(|dir| std::fs::read_dir(dir).ok())
+            .is_some_and(|mut rd| rd.any(|e| e.is_ok_and(|e| e.path().join("msedgewebview2.exe").is_file())))
+    });
+    if installed {
+        return;
+    }
+    let Some(exe_dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(Path::to_path_buf)) else {
+        return;
+    };
+    let name = if cfg!(target_arch = "aarch64") { "webview2-arm64" } else { "webview2-x64" };
+    for dir in [exe_dir.join(".cinasafe").join("runtime").join(name), exe_dir.join(name)] {
+        if dir.join("msedgewebview2.exe").is_file() {
+            std::env::set_var("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", &dir);
+            return;
+        }
+    }
+}
+
+#[cfg(not(windows))]
+fn use_carried_webview2() {}
+
 /// Logout, shutdown and Ctrl-C end the app the normal way, so the vault is
 /// locked and the session dir deleted (RunEvent::Exit).
 #[cfg(unix)]
@@ -83,6 +116,7 @@ fn main() {
         }
     };
     redirect_caches(&session);
+    use_carried_webview2();
     let webview_dir = session.join("webview");
 
     let app = tauri::Builder::default()

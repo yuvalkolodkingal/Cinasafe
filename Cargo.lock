@@ -726,7 +726,7 @@ dependencies = [
 
 [[package]]
 name = "cinasafe-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cinasafe-core",
  "cinasafe-player",
@@ -747,7 +747,7 @@ dependencies = [
 
 [[package]]
 name = "cinasafe-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cinasafe-core",
  "cinasafe-player",
@@ -762,7 +762,7 @@ dependencies = [
 
 [[package]]
 name = "cinasafe-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -795,7 +795,7 @@ dependencies = [
 
 [[package]]
 name = "cinasafe-player"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cinasafe-core",
  "libloading 0.8.9",
@@ -4638,7 +4638,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-embed-spike"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cinasafe-core",
  "cinasafe-player",

@@ -12,6 +12,10 @@ publish = false
 name = "cinasafe-app"
 path = "src/main.rs"
 
+[features]
+# libmpv compiled into the binary (release packages); see crates/cinasafe-player.
+static-mpv = ["cinasafe-player/static-mpv"]
+
 [dependencies]
 cinasafe-core = { path = "../../crates/cinasafe-core" }
 cinasafe-player = { path = "../../crates/cinasafe-player" }

@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://code.videolan.org/videolan/libplacebo.git
+# tag v7.360.1
+revision = cee9b076f2c63104ccfd497fa79c39a867293ec4
+depth = 1
+clone-recursive = true
