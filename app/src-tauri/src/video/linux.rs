@@ -75,6 +75,28 @@ fn clear_black() {
     }
 }
 
+/// GL_RENDERER of the current context, e.g. "llvmpipe (LLVM 20.1.2, 256 bits)".
+fn gl_renderer() -> String {
+    type GetString = unsafe extern "C" fn(u32) -> *const std::ffi::c_char;
+    const GL_RENDERER: u32 = 0x1F01;
+    let p = gl_fn(c"glGetString");
+    if p.is_null() {
+        return String::new();
+    }
+    let f: GetString = unsafe { std::mem::transmute(p) };
+    let s = unsafe { f(GL_RENDERER) };
+    if s.is_null() {
+        return String::new();
+    }
+    unsafe { std::ffi::CStr::from_ptr(s) }.to_string_lossy().into_owned()
+}
+
+/// Software rasterisers (no GPU, or a broken driver).
+pub fn is_software_renderer(renderer: &str) -> bool {
+    let r = renderer.to_ascii_lowercase();
+    ["llvmpipe", "softpipe", "swiftshader", "software rasterizer", "lavapipe"].iter().any(|s| r.contains(s))
+}
+
 fn is_wayland() -> bool {
     gtk::gdk::Display::default().is_some_and(|d| d.type_().name().contains("Wayland"))
 }
@@ -176,8 +198,9 @@ fn on_main<T: Send + 'static>(app: &AppHandle, f: impl FnOnce() -> T + Send + 's
     rx.recv().ok()
 }
 
-/// Connects mpv's renderer to the GL area (after `initialize`).
-pub fn attach(app: &AppHandle, mpv: Arc<Mpv>) -> Result<(), String> {
+/// Connects mpv's renderer to the GL area (after `initialize`). Returns
+/// whether GL is a software rasteriser.
+pub fn attach(app: &AppHandle, mpv: Arc<Mpv>) -> Result<bool, String> {
     on_main(app, move || {
         let area = AREA.with(|a| a.borrow().clone()).ok_or("no video surface")?;
         area.make_current();
@@ -205,7 +228,7 @@ pub fn attach(app: &AppHandle, mpv: Arc<Mpv>) -> Result<(), String> {
             });
         });
         RENDER.with(|r| *r.borrow_mut() = Some(rc));
-        Ok(())
+        Ok(is_software_renderer(&gl_renderer()))
     })
     .unwrap_or_else(|| Err("main thread unavailable".into()))
 }

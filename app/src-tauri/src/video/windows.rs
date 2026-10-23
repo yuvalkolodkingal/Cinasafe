@@ -62,9 +62,10 @@ pub fn prepare(mpv: &Mpv) -> Result<(), cinasafe_player::Error> {
     mpv.set_option("wid", &(child() as isize).to_string())
 }
 
-pub fn attach(_app: &AppHandle, _mpv: Arc<Mpv>) -> Result<(), String> {
+pub fn attach(_app: &AppHandle, _mpv: Arc<Mpv>) -> Result<bool, String> {
     unsafe { ShowWindow(child(), SW_SHOW) };
-    Ok(())
+    // mpv chooses d3d11 itself, including WARP when there's no GPU.
+    Ok(false)
 }
 
 pub fn detach(_app: &AppHandle) {
