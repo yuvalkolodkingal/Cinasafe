@@ -778,7 +778,10 @@ version = "0.1.0"
 dependencies = [
  "cinasafe-core",
  "libloading 0.8.9",
+ "serde_json",
+ "tempfile",
  "thiserror 2.0.21",
+ "zeroize",
 ]
 
 [[package]]

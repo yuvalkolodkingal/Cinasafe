@@ -7,6 +7,7 @@
 pub mod ffi;
 mod render;
 mod stream;
+mod vault;
 
 use std::ffi::{c_char, c_int, c_void, CStr, CString};
 use std::ptr;
@@ -14,6 +15,7 @@ use std::time::Duration;
 
 pub use render::{GlRenderContext, NativeDisplay, RenderUpdate};
 pub use stream::{MediaStream, StreamOpener, StreamStats};
+pub use vault::{MpvProber, VaultOpener};
 
 use ffi::*;
 
