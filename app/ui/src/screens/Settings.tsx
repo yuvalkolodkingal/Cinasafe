@@ -297,12 +297,12 @@ function ChangePasswordDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog title={t('settings.changePassword')} onClose={onClose}>
       <form onSubmit={submit} className="stack">
-        <Field label={t('settings.currentPassword')}>{(id) => <input id={id} type="password" dir="ltr" autoComplete="off" value={old} onChange={(e) => setOld(e.target.value)} />}</Field>
+        <Field label={t('settings.currentPassword')}>{(id) => <input spellCheck={false} autoComplete="off" id={id} type="password" dir="ltr" value={old} onChange={(e) => setOld(e.target.value)} />}</Field>
         <Field label={t('settings.newPassword')} hint={t('wizard.minLength')}>
-          {(id) => <input id={id} type="password" dir="ltr" autoComplete="off" value={pw} onChange={(e) => setPw(e.target.value)} />}
+          {(id) => <input spellCheck={false} autoComplete="off" id={id} type="password" dir="ltr" value={pw} onChange={(e) => setPw(e.target.value)} />}
         </Field>
         <Field label={t('settings.confirmPassword')} error={pw2 && pw !== pw2 ? t('wizard.noMatch') : null}>
-          {(id) => <input id={id} type="password" dir="ltr" autoComplete="off" value={pw2} onChange={(e) => setPw2(e.target.value)} />}
+          {(id) => <input spellCheck={false} autoComplete="off" id={id} type="password" dir="ltr" value={pw2} onChange={(e) => setPw2(e.target.value)} />}
         </Field>
         {error && (
           <p className="field-error" role="alert">
@@ -355,7 +355,7 @@ function ReplaceRecoveryDialog({ onClose }: { onClose: () => void }) {
           }}
         >
           <p className="muted">{t('settings.replaceRecoveryBody')}</p>
-          <Field label={t('unlock.password')}>{(id) => <input id={id} type="password" dir="ltr" autoComplete="off" value={pw} onChange={(e) => setPw(e.target.value)} />}</Field>
+          <Field label={t('unlock.password')}>{(id) => <input spellCheck={false} autoComplete="off" id={id} type="password" dir="ltr" value={pw} onChange={(e) => setPw(e.target.value)} />}</Field>
           {error && (
             <p className="field-error" role="alert">
               {error}

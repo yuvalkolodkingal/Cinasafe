@@ -82,26 +82,26 @@ export function EditDetailsDialog({
       }
     >
       <div className="form-grid">
-        <Field label={t('edit.titleField')}>{(fid) => <input id={fid} value={title} dir="auto" onChange={(e) => setTitle(e.target.value)} />}</Field>
-        <Field label={t('edit.originalTitle')}>{(fid) => <input id={fid} value={original} dir="auto" onChange={(e) => setOriginal(e.target.value)} />}</Field>
+        <Field label={t('edit.titleField')}>{(fid) => <input spellCheck={false} autoComplete="off" id={fid} value={title} dir="auto" onChange={(e) => setTitle(e.target.value)} />}</Field>
+        <Field label={t('edit.originalTitle')}>{(fid) => <input spellCheck={false} autoComplete="off" id={fid} value={original} dir="auto" onChange={(e) => setOriginal(e.target.value)} />}</Field>
         <Field label={kind === 'show' ? t('edit.firstYear') : t('edit.year')}>
-          {(fid) => <input id={fid} inputMode="numeric" value={year} dir="ltr" onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
+          {(fid) => <input spellCheck={false} autoComplete="off" id={fid} inputMode="numeric" value={year} dir="ltr" onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
         </Field>
         {kind === 'show' && (
           <Field label={t('edit.lastYear')}>
-            {(fid) => <input id={fid} inputMode="numeric" value={lastYear} dir="ltr" onChange={(e) => setLastYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
+            {(fid) => <input spellCheck={false} autoComplete="off" id={fid} inputMode="numeric" value={lastYear} dir="ltr" onChange={(e) => setLastYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
           </Field>
         )}
         {kind === 'movie' && (
           <Field label={t('edit.runtime')}>
-            {(fid) => <input id={fid} inputMode="numeric" value={runtime} dir="ltr" onChange={(e) => setRuntime(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
+            {(fid) => <input spellCheck={false} autoComplete="off" id={fid} inputMode="numeric" value={runtime} dir="ltr" onChange={(e) => setRuntime(e.target.value.replace(/\D/g, '').slice(0, 4))} />}
           </Field>
         )}
         <Field label={t('edit.genres')} hint={t('edit.genresHint')}>
-          {(fid) => <input id={fid} value={genres} dir="auto" onChange={(e) => setGenres(e.target.value)} />}
+          {(fid) => <input spellCheck={false} autoComplete="off" id={fid} value={genres} dir="auto" onChange={(e) => setGenres(e.target.value)} />}
         </Field>
       </div>
-      <Field label={t('edit.overview')}>{(fid) => <textarea id={fid} rows={5} value={overview} dir="auto" onChange={(e) => setOverview(e.target.value)} />}</Field>
+      <Field label={t('edit.overview')}>{(fid) => <textarea spellCheck={false} autoComplete="off" id={fid} rows={5} value={overview} dir="auto" onChange={(e) => setOverview(e.target.value)} />}</Field>
       {error && (
         <p className="field-error" role="alert">
           {error}

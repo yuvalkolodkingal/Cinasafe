@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest something Cinasafe should do.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cinasafe's scope is in [docs/BRIEF.md](../../blob/main/docs/BRIEF.md) (goals and
+        non-goals in section 1). Ideas that would write decrypted data to the computer's disk,
+        or send library data anywhere, can't be accepted.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The situation and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and security
+      description: Does this need network access, new files on the stick, or anything stored outside it?
