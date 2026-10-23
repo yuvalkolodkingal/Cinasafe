@@ -77,14 +77,17 @@ fn clear_black() {
 
 /// GL_RENDERER of the current context, e.g. "llvmpipe (LLVM 20.1.2, 256 bits)".
 fn gl_renderer() -> String {
+    gl_string(0x1F01)
+}
+
+fn gl_string(name: u32) -> String {
     type GetString = unsafe extern "C" fn(u32) -> *const std::ffi::c_char;
-    const GL_RENDERER: u32 = 0x1F01;
     let p = gl_fn(c"glGetString");
     if p.is_null() {
         return String::new();
     }
     let f: GetString = unsafe { std::mem::transmute(p) };
-    let s = unsafe { f(GL_RENDERER) };
+    let s = unsafe { f(name) };
     if s.is_null() {
         return String::new();
     }
@@ -209,15 +212,18 @@ pub fn attach(app: &AppHandle, mpv: Arc<Mpv>) -> Result<bool, String> {
         }
         // SAFETY: the area's GL context is current; `detach` drops the render
         // context (with the context current) before the session drops mpv.
-        let mut rc = unsafe {
-            GlRenderContext::new(
-                &mpv,
-                get_proc_address as GetProcAddressFn,
-                std::ptr::null_mut(),
-                native_display(is_wayland()),
-            )
-        }
-        .map_err(|e| e.to_string())?;
+        let create = |display| unsafe {
+            GlRenderContext::new(&mpv, get_proc_address as GetProcAddressFn, std::ptr::null_mut(), display)
+        };
+        // The native display only enables hardware-decoder interop. If a driver
+        // (hybrid NVIDIA/Intel laptops, say) refuses it, play without.
+        let mut rc = match create(native_display(is_wayland())) {
+            Ok(rc) => rc,
+            Err(e) => {
+                eprintln!("cinasafe: render context with native display failed ({e}); retrying without");
+                create(NativeDisplay::None).map_err(|e| e.to_string())?
+            }
+        };
         rc.set_update_callback(|| {
             glib::idle_add_once(|| {
                 AREA.with(|a| {
@@ -231,6 +237,31 @@ pub fn attach(app: &AppHandle, mpv: Arc<Mpv>) -> Result<bool, String> {
         Ok(is_software_renderer(&gl_renderer()))
     })
     .unwrap_or_else(|| Err("main thread unavailable".into()))
+}
+
+/// What the video surface runs on, for `--check-video`.
+pub fn describe(app: &AppHandle) -> String {
+    on_main(app, || {
+        let backend = gtk::gdk::Display::default().map(|d| d.type_().name().to_string()).unwrap_or_default();
+        let mut out = format!("GDK backend: {backend}\nGL loader: {}", if is_wayland() { "EGL" } else { "GLX" });
+        match AREA.with(|a| a.borrow().clone()) {
+            None => out.push_str("\nvideo surface: missing (see the error above)"),
+            Some(area) => {
+                out.push_str(&format!("\nvideo surface: realized {}", area.is_realized()));
+                area.make_current();
+                match area.error() {
+                    Some(e) => out.push_str(&format!("\nGL context error: {e}")),
+                    None => out.push_str(&format!(
+                        "\nGL renderer: {}\nGL version: {}",
+                        gl_string(0x1F01),
+                        gl_string(0x1F02)
+                    )),
+                }
+            }
+        }
+        out
+    })
+    .unwrap_or_else(|| "main thread unavailable".into())
 }
 
 /// Frees the render context; the area goes back to black.

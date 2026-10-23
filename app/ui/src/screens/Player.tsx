@@ -14,6 +14,13 @@ import { useSession } from '../lib/session';
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 type Menu = 'subs' | 'audio' | 'speed' | null;
 
+/** The error text. A video-output failure also shows the driver's own words (no vault data in it). */
+function playerErrorText(t: (k: string) => string, e: unknown): string {
+  const ae = asAppError(e);
+  const text = t(`errors.${ae.code}`);
+  return ae.code === 'videoUnavailable' && ae.message ? `${text} (${ae.message})` : text;
+}
+
 export function Player() {
   const { t } = useTranslation();
   const { mediaFileId } = useParams();
@@ -35,7 +42,7 @@ export function Player() {
   nextCancelledRef.current = nextCancelled;
 
   const cmd = useCallback((c: PlayerCommand) => {
-    api.playerCommand(c).catch((e) => setError(t(`errors.${asAppError(e).code}`)));
+    api.playerCommand(c).catch((e) => setError(playerErrorText(t, e)));
   }, [t]);
 
   // Transparent page while the player is up.
@@ -52,7 +59,7 @@ export function Player() {
     setNextCancelled(false);
     setCountdown(null);
     setSlowDismissed(false);
-    api.playerOpen(id, search.get('start') === '1').then(setSt, (e) => setError(t(`errors.${asAppError(e).code}`)));
+    api.playerOpen(id, search.get('start') === '1').then(setSt, (e) => setError(playerErrorText(t, e)));
   }, [mediaFileId, search, t]);
 
   useEffect(() => {

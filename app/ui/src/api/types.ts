@@ -33,6 +33,7 @@ export type ErrorCode =
   | 'unauthorized'
   | 'player'
   | 'playerUnavailable'
+  | 'videoUnavailable'
   | 'formatFailed'
   | 'formatCancelled'
   | 'badLabel'

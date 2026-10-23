@@ -118,6 +118,9 @@ fn main() {
     redirect_caches(&session);
     use_carried_webview2();
     let webview_dir = session.join("webview");
+    // `--check-video`: open the window, start the player engine on it, print
+    // what happened and exit. For bug reports; no vault is touched.
+    let check_video = std::env::args().any(|a| a == "--check-video");
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -192,6 +195,15 @@ fn main() {
             if let Err(e) = video::setup(&window) {
                 // The library still works; playback will report the problem.
                 eprintln!("cinasafe: video surface unavailable: {e}");
+            }
+            if check_video {
+                let handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    // Let the window and its video surface appear first.
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                    let ok = video::check(&handle);
+                    handle.exit(if ok { 0 } else { 1 });
+                });
             }
             Ok(())
         })
