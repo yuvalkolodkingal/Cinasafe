@@ -88,6 +88,11 @@ if ($cm.Contains($expr)) {
 if (-not (Test-Path (Join-Path $shadercSrc "third_party\glslang"))) {
     python (Join-Path $shadercSrc "utils\git-sync-deps")
 }
+# SPIRV-Tools generates build-version.inc in a CMake custom target, which
+# meson's CMake module doesn't run. Generate it up front; the SPIRV-Tools
+# source root is on the include path.
+$spvTools = Join-Path $shadercSrc "third_party\spirv-tools"
+python (Join-Path $spvTools "utils\update_build_version.py") (Join-Path $spvTools "CHANGES") (Join-Path $spvTools "build-version.inc")
 New-Item -ItemType Directory -Force -Path (Join-Path $sub "shaderc") | Out-Null
 Set-Content -Path (Join-Path $sub "shaderc\meson.build") -Value @"
 project('shaderc', 'cpp', version: '2026.4')
