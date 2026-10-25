@@ -103,9 +103,11 @@ impl Mpv {
     /// Creates an uninitialised handle with [`SAFE_OPTIONS`] applied.
     pub fn new() -> Result<Mpv> {
         let api = ffi::api().map_err(Error::Library)?;
+        ffi::use_c_numeric_locale();
         let handle = unsafe { (api.mpv_create)() };
         if handle.is_null() {
-            return Err(Error::Library("mpv_create returned NULL".into()));
+            // Not "libmpv missing": the library loaded, it just refused to start.
+            return Err(Error::Mpv { what: "create".into(), code: -20, msg: "mpv_create returned NULL".into() });
         }
         let mpv = Mpv { api, handle, streams: None };
         for (k, v) in SAFE_OPTIONS {
