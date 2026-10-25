@@ -166,6 +166,25 @@ const LIB_NAMES: &[&str] = &["libmpv.2.dylib", "libmpv.dylib"];
 #[cfg(all(not(feature = "static-mpv"), unix, not(target_os = "macos")))]
 const LIB_NAMES: &[&str] = &["libmpv.so.2", "libmpv.so"];
 
+#[cfg(any(target_os = "macos", windows))]
+const LC_NUMERIC: c_int = 4;
+#[cfg(not(any(target_os = "macos", windows)))]
+const LC_NUMERIC: c_int = 1;
+
+unsafe extern "C" {
+    fn setlocale(category: c_int, locale: *const c_char) -> *mut c_char;
+}
+
+/// Puts the process's number formatting in the "C" locale. libmpv's
+/// `mpv_create` returns NULL under any other `LC_NUMERIC` (a decimal comma,
+/// say), and GTK sets the locale from the user's environment when the app
+/// starts, so a desktop in Hebrew, German, French, ... gets no player at all.
+pub fn use_c_numeric_locale() {
+    // SAFETY: "C" is a valid locale name; Rust's own formatting ignores the
+    // C locale, so nothing else in the process depends on this category.
+    unsafe { setlocale(LC_NUMERIC, c"C".as_ptr()) };
+}
+
 /// Client API major version this wrapper is written against (mpv 0.35+).
 const API_MAJOR: u64 = 2;
 
@@ -184,7 +203,9 @@ pub fn platform_dir() -> String {
 /// - next to the executable, and in its `mpv/` folder (portable zip, installer);
 /// - `.cinasafe/runtime/<platform>/` beside the executable (the app on a stick);
 /// - `../lib` from the executable (inside the AppImage);
-/// - the system search path.
+/// - the usual system library folders (Debian multiarch, Fedora/RHEL `lib64`, `/usr/local`),
+///   whatever the loader's own cache and `LD_LIBRARY_PATH` say;
+/// - the loader's search path.
 #[cfg(not(feature = "static-mpv"))]
 fn candidates() -> Vec<PathBuf> {
     let mut dirs = Vec::new();
@@ -196,6 +217,21 @@ fn candidates() -> Vec<PathBuf> {
         dirs.push(exe_dir.join(".cinasafe").join("runtime").join(platform_dir()));
         dirs.push(exe_dir.join("..").join("lib"));
         dirs.push(exe_dir);
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        let arch = std::env::consts::ARCH;
+        for d in [
+            "/usr/lib64".to_string(),
+            format!("/usr/lib/{arch}-linux-gnu"),
+            "/usr/lib".to_string(),
+            "/lib64".to_string(),
+            format!("/lib/{arch}-linux-gnu"),
+            "/usr/local/lib64".to_string(),
+            "/usr/local/lib".to_string(),
+        ] {
+            dirs.push(PathBuf::from(d));
+        }
     }
     let mut out: Vec<PathBuf> =
         dirs.iter().flat_map(|d| LIB_NAMES.iter().map(move |n| d.join(n))).filter(|p| p.is_file()).collect();
